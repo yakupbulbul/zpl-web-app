@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZPL to PNG Converter</title>
+    <meta name="description"
+        content="Free ZPL to PNG converter. Upload your ZPL file and get a high-quality PNG label instantly.">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <div class="header-actions">
+                <div class="badge-free">
+                    <ion-icon name="sparkles"></ion-icon>
+                    <span data-i18n="badge_free">100% Free Tool</span>
+                </div>
+                <div class="header-right-actions">
+                    <div class="lang-selector">
+                        <ion-icon name="globe-outline"></ion-icon>
+                        <select id="lang-btn" class="lang-toggle" aria-label="Select Language">
+                            <option value="en">EN</option>
+                            <option value="de">DE</option>
+                            <option value="tr">TR</option>
+                            <option value="nl">NL</option>
+                            <option value="fr">FR</option>
+                            <option value="it">IT</option>
+                        </select>
+                    </div>
+                    <button class="btn-icon theme-toggle" id="theme-btn" aria-label="Toggle Theme">
+                        <ion-icon name="sunny-outline" id="theme-icon"></ion-icon>
+                    </button>
+                </div>
+            </div>
+            <div class="logo-container">
+                <img src="assets/logo.png" alt="ZPL to PNG Logo" class="app-logo">
+            </div>
+            <h1 data-i18n="title">ZPL to PNG Converter</h1>
+            <p data-i18n="subtitle">Upload a ZPL file or paste ZPL code to generate a high-quality PNG label
+                instantly.<br>No limits, no
+                sign-up required, completely free.</p>
+        </header>
+
+        <section class="converter-box glass-panel">
+            <div class="tabs">
+                <button class="tab active" data-tab="upload">
+                    <ion-icon name="cloud-upload-outline"></ion-icon>
+                    <span data-i18n="tab_upload">File Upload</span>
+                </button>
+                <button class="tab" data-tab="paste">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span data-i18n="tab_paste">Paste Code</span>
+                </button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-content active" id="upload-tab">
+                <div class="drop-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept=".zpl,.txt" hidden>
+                    <ion-icon name="document-attach-outline"></ion-icon>
+                    <h3 data-i18n="drop_title">Drag & Drop your ZPL file</h3>
+                    <p data-i18n="drop_or">or</p>
+                    <button class="btn btn-outline" id="browse-btn" data-i18n="btn_browse">Browse Files</button>
+                    <p class="file-hint" data-i18n="drop_hint">Supported formats: .zpl, .txt</p>
+                </div>
+                <!-- Selected File Info -->
+                <div class="file-info hidden" id="file-info">
+                    <div class="file-details">
+                        <ion-icon name="document-outline"></ion-icon>
+                        <span id="file-name">label.zpl</span>
+                    </div>
+                    <button class="btn-icon" id="remove-file-btn" aria-label="Remove file">
+                        <ion-icon name="close-circle"></ion-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paste Tab -->
+            <div class="tab-content" id="paste-tab">
+                <div class="textarea-wrapper">
+                    <div class="textarea-header">
+                        <label for="zpl-input" data-i18n="label_zpl_code">ZPL Code</label>
+                        <button class="btn-text" id="clear-btn" data-i18n="btn_clear">Clear</button>
+                    </div>
+                    <textarea id="zpl-input" placeholder="^XA&#10;^FO50,50^ADN,36,20^FDHello World^FS&#10;^XZ"
+                        spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="settings">
+                <div class="setting-group">
+                    <label for="density" data-i18n="label_density">Print Density</label>
+                    <div class="select-wrapper">
+                        <select id="density">
+                            <option value="6">152 (6 dpmm)</option>
+                            <option value="8" selected>203 (8 dpmm)</option>
+                            <option value="12">300 (12 dpmm)</option>
+                            <option value="24">600 (24 dpmm)</option>
+                        </select>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </div>
+                </div>
+                <div class="setting-group size-group">
+                    <label data-i18n="label_size">Label Size (Inches)</label>
+                    <div class="size-inputs">
+                        <div class="input-with-label">
+                            <input type="number" id="width" value="4" step="0.1" min="1" max="15">
+                            <span>W</span>
+                        </div>
+                        <span class="x-divider">×</span>
+                        <div class="input-with-label">
+                            <input type="number" id="height" value="6" step="0.1" min="1" max="15">
+                            <span>H</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="convert-btn">
+                <span data-i18n="btn_convert">Convert to PNG</span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+            </button>
+
+            <div class="loader-container hidden" id="loader">
+                <div class="spinner"></div>
+                <p data-i18n="loader_text">Generating Label...</p>
+            </div>
+        </section>
+
+        <!-- Result Section -->
+        <section class="result-section hidden glass-panel" id="result-section">
+            <div class="result-header">
+                <h2 data-i18n="result_title">Generated Label</h2>
+                <button class="btn-icon btn-close-result" id="close-result-btn">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="image-preview" id="image-preview">
+                <!-- Image will be injected here -->
+            </div>
+            <div class="result-actions">
+                <button class="btn btn-primary" id="download-btn">
+                    <ion-icon name="download-outline"></ion-icon>
+                    <span data-i18n="btn_download">Download PNG</span>
+                </button>
+                <button class="btn btn-outline" id="new-convert-btn" data-i18n="btn_convert_another">Convert
+                    Another</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="glass-panel-small">
+        <p><span data-i18n="footer_built">Built with</span> <ion-icon name="heart" class="heart-icon"></ion-icon>
+            <span data-i18n="footer_by">by Yakup</span>
+        </p>
+        <div class="footer-links">
+            <a href="https://github.com/yakupbulbul" target="_blank" rel="noopener noreferrer">
+                <ion-icon name="logo-github"></ion-icon>
+                <span data-i18n="footer_github">GitHub Profile</span>
+            </a>
+            <a href="https://www.buymeacoffee.com/yakupbulbul" target="_blank" rel="noopener noreferrer"
+                class="coffee-badge">
+                <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=yakupbulbul&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"
+                    alt="Buy me a coffee" />
+            </a>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
