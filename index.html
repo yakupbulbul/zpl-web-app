@@ -312,6 +312,59 @@
 
                 <section class="glass-panel pdf-tool-section">
                     <div class="section-heading">
+                        <span class="section-kicker">Add & Sign</span>
+                        <h2 data-i18n="pdf_editor_heading">PDF Add & Sign</h2>
+                        <p data-i18n="pdf_editor_subtitle">Add text, images, signatures, and practical overlays onto existing PDF pages without rewriting the original document content.</p>
+                    </div>
+                    <div class="pdf-picker-card" id="pdf-editor-picker">
+                        <input type="file" id="pdf-editor-input" class="visually-hidden-input" accept="application/pdf,.pdf">
+                        <label class="pdf-picker-trigger" for="pdf-editor-input">
+                            <ion-icon name="create-outline"></ion-icon>
+                            <span class="pdf-picker-copy">
+                                <span class="pdf-picker-title" data-i18n="pdf_editor_picker_title">Choose one PDF</span>
+                                <span class="pdf-picker-subtitle" data-i18n="pdf_editor_picker_subtitle">Open a PDF and prepare pages for text, sign, and stamp overlays.</span>
+                            </span>
+                            <span class="pdf-picker-badge" data-i18n="pdf_editor_picker_badge">Editor</span>
+                        </label>
+                        <p class="pdf-picker-status" id="pdf-editor-status" data-i18n="pdf_editor_picker_empty">No file selected yet.</p>
+                    </div>
+                    <div class="pdf-tool-frame pdf-tool-frame-editor">
+                        <div class="pdf-tool-controls pdf-editor-controls">
+                            <div class="section-heading section-heading-inline">
+                                <span class="section-kicker" data-i18n="pdf_editor_tools_kicker">Workspace</span>
+                                <h3 data-i18n="pdf_editor_tools_heading">Overlay Setup</h3>
+                            </div>
+                            <div class="pdf-editor-toolbar" id="pdf-editor-toolbar">
+                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_text">Text</button>
+                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_image">Image</button>
+                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_signature">Signature</button>
+                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_stamp">Stamp</button>
+                            </div>
+                            <div class="pdf-page-grid" id="pdf-editor-page-grid"></div>
+                            <p class="pdf-tool-empty" id="pdf-editor-empty" data-i18n="pdf_editor_empty">Upload a PDF to start placing add/sign overlays.</p>
+                            <div class="pdf-tool-actions">
+                                <button class="btn btn-primary" id="pdf-editor-export-btn" disabled>
+                                    <ion-icon name="download-outline"></ion-icon>
+                                    <span data-i18n="pdf_editor_export">Export Updated PDF</span>
+                                </button>
+                            </div>
+                            <p class="action-feedback hidden" id="pdf-editor-feedback"></p>
+                        </div>
+                        <div class="pdf-preview-panel pdf-editor-preview-panel">
+                            <div class="pdf-preview-header">
+                                <span class="section-kicker" data-i18n="pdf_preview_label">Preview</span>
+                                <p class="pdf-preview-meta" id="pdf-editor-preview-meta" data-i18n="pdf_editor_preview_hint">Upload a PDF and choose a page to prepare add/sign overlays.</p>
+                            </div>
+                            <div class="pdf-preview-stage pdf-editor-preview-stage">
+                                <p class="pdf-preview-empty" id="pdf-editor-preview-empty" data-i18n="pdf_preview_empty">Preview will appear here when a page is available.</p>
+                                <canvas id="pdf-editor-preview-canvas" class="pdf-preview-canvas hidden"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-panel pdf-tool-section">
+                    <div class="section-heading">
                         <span class="section-kicker">Split</span>
                         <h2 data-i18n="pdf_split_heading">PDF Split</h2>
                         <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
@@ -493,6 +546,7 @@
     <script src="js/app-shell.js"></script>
     <script src="js/zpl-tool.js"></script>
     <script src="js/pdf-tools.js"></script>
+    <script src="js/pdf-editor.js"></script>
     <script src="js/qr-tool.js"></script>
     <script src="script.js"></script>
 </body>

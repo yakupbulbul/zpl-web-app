@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let zplTool = null;
     let pdfTools = null;
     let qrTool = null;
+    let pdfEditor = null;
 
     const shell = (app.createAppShell || (() => null))({
         documentRoot: document,
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         escapeHtml,
         getZplTool: () => zplTool,
         getPdfTools: () => pdfTools,
+        getPdfEditor: () => pdfEditor,
         getQrTool: () => qrTool,
         pdfWorkerSrc: config.PDF_WORKER_SRC || ''
     });
@@ -46,6 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
         translations,
         cloneArrayBuffer,
         escapeHtml,
+        downloadBlobUrl
+    });
+
+    pdfEditor = (app.createPdfEditor || (() => null))({
+        elements,
+        translations,
+        cloneArrayBuffer,
         downloadBlobUrl
     });
 
