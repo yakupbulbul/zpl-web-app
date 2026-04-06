@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "result_title": "Generated Label",
             "btn_download": "Download PNG",
             "btn_download_pdf": "Download PDF",
+            "btn_copy_share": "Copy Share Link",
             "btn_convert_another": "Convert Another",
             "footer_built": "Built with",
             "footer_by": "by Yakup",
@@ -43,7 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
             "history_title": "Recent Conversions",
             "history_subtitle": "Restore one of your last successful ZPL sessions.",
             "history_clear": "Clear history",
-            "history_empty": "No successful conversions saved yet."
+            "history_empty": "No successful conversions saved yet.",
+            "share_link_ready": "Share link copied to clipboard.",
+            "share_link_failed": "Unable to create a share link right now."
         },
         de: {
             "badge_free": "100% Kostenlos",
@@ -185,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imagePreview: document.getElementById('image-preview'),
         downloadBtn: document.getElementById('download-btn'),
         downloadPdfBtn: document.getElementById('download-pdf-btn'),
+        copyLinkBtn: document.getElementById('copy-link-btn'),
         newConvertBtn: document.getElementById('new-convert-btn'),
         closeResultBtn: document.getElementById('close-result-btn'),
         historyList: document.getElementById('history-list'),
@@ -206,7 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRequestSequence: 0,
         latestRenderRequest: 0,
         applyingPreset: false,
-        conversionHistory: []
+        conversionHistory: [],
+        lastRenderedZpl: '',
+        lastRenderSettings: null
     };
 
     const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
@@ -228,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeHistory();
     initializePaste();
     initializeActions();
+    initializeSharedState();
     updateConvertButtonState();
 
     function initializeTheme() {
@@ -456,6 +463,56 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderZplToPng(zplData, settings, requestId, options);
     }
 
+    function initializeSharedState() {
+        const sharedState = parseSharedState();
+        if (!sharedState) {
+            return;
+        }
+
+        clearSelectedFile();
+        elements.zplInput.value = sharedState.zpl;
+        elements.widthInput.value = sharedState.width;
+        elements.heightInput.value = sharedState.height;
+        elements.densitySelect.value = sharedState.density;
+        elements.presetSelect.value = 'custom';
+        switchInputTab('paste');
+        updateConvertButtonState();
+        requestRender(sharedState.zpl, getRenderSettings());
+    }
+
+    function parseSharedState() {
+        if (!window.location.hash.startsWith('#zpl=')) {
+            return null;
+        }
+
+        if (!window.LZString) {
+            return null;
+        }
+
+        try {
+            const compressed = window.location.hash.slice(5);
+            const decompressed = window.LZString.decompressFromEncodedURIComponent(compressed);
+            if (!decompressed) {
+                return null;
+            }
+
+            const payload = JSON.parse(decompressed);
+            if (!payload || typeof payload.zpl !== 'string') {
+                return null;
+            }
+
+            return {
+                zpl: payload.zpl,
+                width: typeof payload.width === 'string' ? payload.width : '4',
+                height: typeof payload.height === 'string' ? payload.height : '6',
+                density: typeof payload.density === 'string' ? payload.density : '8'
+            };
+        } catch (error) {
+            console.error('Share state parse error:', error);
+            return null;
+        }
+    }
+
     function initializeHistory() {
         state.conversionHistory = loadHistoryEntries();
         renderHistoryList();
@@ -589,6 +646,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await downloadCurrentPdf();
         });
 
+        elements.copyLinkBtn.addEventListener('click', async () => {
+            await copyShareLink();
+        });
+
         elements.newConvertBtn.addEventListener('click', resetView);
         elements.closeResultBtn.addEventListener('click', resetView);
     }
@@ -643,6 +704,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             state.generatedImageBlob = blob;
+            state.lastRenderedZpl = zplData;
+            state.lastRenderSettings = { ...settings };
             hideFeedback();
             const blobUrl = createBlobUrl(blob);
             displayResult(blobUrl);
@@ -720,6 +783,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    async function copyShareLink() {
+        if (!state.lastRenderedZpl || !state.lastRenderSettings || !window.LZString) {
+            showFeedback(translations.en.share_link_failed, true);
+            return;
+        }
+
+        try {
+            const payload = {
+                zpl: state.lastRenderedZpl,
+                width: String(state.lastRenderSettings.width),
+                height: String(state.lastRenderSettings.height),
+                density: String(state.lastRenderSettings.density)
+            };
+            const encoded = window.LZString.compressToEncodedURIComponent(JSON.stringify(payload));
+            const shareUrl = `${window.location.origin}${window.location.pathname}#zpl=${encoded}`;
+            await navigator.clipboard.writeText(shareUrl);
+            showFeedback(translations.en.share_link_ready);
+        } catch (error) {
+            console.error('Share link error:', error);
+            showFeedback(translations.en.share_link_failed, true);
+        }
     }
 
     async function downloadCurrentPdf() {
