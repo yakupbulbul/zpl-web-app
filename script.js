@@ -12,6 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
             "drop_hint": "Supported formats: .zpl, .txt",
             "label_zpl_code": "ZPL Code",
             "btn_clear": "Clear",
+            "label_preset": "Label Preset",
+            "preset_shipping_4x6": "4x6 Shipping Label",
+            "preset_address_4x2": "4x2 Address Label",
+            "preset_product_2x1": "2x1 Product Label",
+            "preset_metric_100x150": "100x150 mm",
+            "preset_custom": "Custom",
             "label_density": "Print Density",
             "label_size": "Label Size (Inches)",
             "btn_convert": "Convert to PNG",
@@ -165,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         removeFileBtn: document.getElementById('remove-file-btn'),
         zplInput: document.getElementById('zpl-input'),
         clearBtn: document.getElementById('clear-btn'),
+        presetSelect: document.getElementById('preset'),
         densitySelect: document.getElementById('density'),
         widthInput: document.getElementById('width'),
         heightInput: document.getElementById('height'),
@@ -190,7 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTool: 'zpl',
         livePreviewTimer: null,
         renderRequestSequence: 0,
-        latestRenderRequest: 0
+        latestRenderRequest: 0,
+        applyingPreset: false
+    };
+
+    const labelPresets = {
+        shipping_4x6: { width: '4', height: '6', density: '8' },
+        address_4x2: { width: '4', height: '2', density: '8' },
+        product_2x1: { width: '2', height: '1', density: '8' },
+        metric_100x150: { width: '3.94', height: '5.91', density: '8' }
     };
 
     initializeTheme();
@@ -198,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeToolSuite();
     initializeTabs();
     initializeUpload();
+    initializePresets();
     initializePaste();
     initializeActions();
     updateConvertButtonState();
@@ -257,6 +273,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 element.innerHTML = translation;
             }
         });
+    }
+
+    function initializePresets() {
+        elements.presetSelect.value = 'shipping_4x6';
+
+        elements.presetSelect.addEventListener('change', () => {
+            applySelectedPreset();
+        });
+
+        elements.widthInput.addEventListener('input', markPresetAsCustom);
+        elements.heightInput.addEventListener('input', markPresetAsCustom);
+        elements.densitySelect.addEventListener('change', markPresetAsCustom);
+    }
+
+    function applySelectedPreset() {
+        const presetKey = elements.presetSelect.value;
+        const preset = labelPresets[presetKey];
+
+        if (!preset) {
+            return;
+        }
+
+        state.applyingPreset = true;
+        elements.widthInput.value = preset.width;
+        elements.heightInput.value = preset.height;
+        elements.densitySelect.value = preset.density;
+        state.applyingPreset = false;
+    }
+
+    function markPresetAsCustom() {
+        if (state.applyingPreset) {
+            return;
+        }
+
+        elements.presetSelect.value = 'custom';
     }
 
     function initializeTabs() {

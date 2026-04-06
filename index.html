@@ -122,6 +122,19 @@
             <!-- Settings -->
             <div class="settings">
                 <div class="setting-group">
+                    <label for="preset" data-i18n="label_preset">Label Preset</label>
+                    <div class="select-wrapper">
+                        <select id="preset">
+                            <option value="shipping_4x6" data-i18n="preset_shipping_4x6">4x6 Shipping Label</option>
+                            <option value="address_4x2" data-i18n="preset_address_4x2">4x2 Address Label</option>
+                            <option value="product_2x1" data-i18n="preset_product_2x1">2x1 Product Label</option>
+                            <option value="metric_100x150" data-i18n="preset_metric_100x150">100x150 mm</option>
+                            <option value="custom" data-i18n="preset_custom">Custom</option>
+                        </select>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </div>
+                </div>
+                <div class="setting-group">
                     <label for="density" data-i18n="label_density">Print Density</label>
                     <div class="select-wrapper">
                         <select id="density">
