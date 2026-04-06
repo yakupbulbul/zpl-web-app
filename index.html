@@ -335,12 +335,46 @@
                                 <h3 data-i18n="pdf_editor_tools_heading">Overlay Setup</h3>
                             </div>
                             <div class="pdf-editor-toolbar" id="pdf-editor-toolbar">
-                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_text">Text</button>
-                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_image">Image</button>
+                                <button class="pdf-editor-tool-chip is-active" type="button" id="pdf-editor-tool-text" data-tool="text" data-i18n="pdf_editor_tool_text">Text</button>
+                                <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-image" data-tool="image" data-i18n="pdf_editor_tool_image">Image</button>
                                 <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_signature">Signature</button>
                                 <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_stamp">Stamp</button>
                             </div>
+                            <div class="pdf-editor-config-card" id="pdf-editor-text-config">
+                                <div class="setting-group">
+                                    <label for="pdf-editor-text-input" data-i18n="pdf_editor_text_label">Text Content</label>
+                                    <input type="text" id="pdf-editor-text-input" placeholder="Approved by finance team">
+                                </div>
+                                <div class="settings pdf-editor-inline-settings">
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-font-size" data-i18n="pdf_editor_font_size">Font Size</label>
+                                        <input type="number" id="pdf-editor-font-size" min="8" max="72" step="1" value="18">
+                                    </div>
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-text-color" data-i18n="pdf_editor_text_color">Color</label>
+                                        <input type="color" id="pdf-editor-text-color" value="#0f172a">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pdf-editor-config-card hidden" id="pdf-editor-image-config">
+                                <input type="file" id="pdf-editor-image-input" class="visually-hidden-input" accept="image/png,image/jpeg,image/webp">
+                                <label class="pdf-picker-trigger" for="pdf-editor-image-input">
+                                    <ion-icon name="image-outline"></ion-icon>
+                                    <span class="pdf-picker-copy">
+                                        <span class="pdf-picker-title" data-i18n="pdf_editor_image_title">Choose image or logo</span>
+                                        <span class="pdf-picker-subtitle" data-i18n="pdf_editor_image_subtitle">Upload a PNG, JPG, or WEBP image and place it on the current page.</span>
+                                    </span>
+                                    <span class="pdf-picker-badge" data-i18n="pdf_editor_image_badge">Image</span>
+                                </label>
+                                <p class="pdf-picker-status" id="pdf-editor-image-status" data-i18n="pdf_editor_image_empty">No image selected yet.</p>
+                                <div class="setting-group">
+                                    <label for="pdf-editor-image-scale" data-i18n="pdf_editor_image_scale">Width (%)</label>
+                                    <input type="range" id="pdf-editor-image-scale" min="10" max="60" step="2" value="24">
+                                </div>
+                            </div>
+                            <p class="pdf-editor-hint" id="pdf-editor-placement-hint" data-i18n="pdf_editor_hint_text">Choose a page, then click on the preview to place the current text overlay.</p>
                             <div class="pdf-page-grid" id="pdf-editor-page-grid"></div>
+                            <div class="pdf-editor-overlay-list" id="pdf-editor-overlay-list"></div>
                             <p class="pdf-tool-empty" id="pdf-editor-empty" data-i18n="pdf_editor_empty">Upload a PDF to start placing add/sign overlays.</p>
                             <div class="pdf-tool-actions">
                                 <button class="btn btn-primary" id="pdf-editor-export-btn" disabled>
@@ -355,9 +389,12 @@
                                 <span class="section-kicker" data-i18n="pdf_preview_label">Preview</span>
                                 <p class="pdf-preview-meta" id="pdf-editor-preview-meta" data-i18n="pdf_editor_preview_hint">Upload a PDF and choose a page to prepare add/sign overlays.</p>
                             </div>
-                            <div class="pdf-preview-stage pdf-editor-preview-stage">
+                            <div class="pdf-preview-stage pdf-editor-preview-stage" id="pdf-editor-preview-stage">
                                 <p class="pdf-preview-empty" id="pdf-editor-preview-empty" data-i18n="pdf_preview_empty">Preview will appear here when a page is available.</p>
-                                <canvas id="pdf-editor-preview-canvas" class="pdf-preview-canvas hidden"></canvas>
+                                <div class="pdf-editor-canvas-shell hidden" id="pdf-editor-canvas-shell">
+                                    <canvas id="pdf-editor-preview-canvas" class="pdf-preview-canvas hidden"></canvas>
+                                    <div class="pdf-editor-overlay-layer" id="pdf-editor-overlay-layer"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
