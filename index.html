@@ -417,6 +417,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="qr-logo-card">
+                            <div class="qr-logo-header">
+                                <label for="qr-logo-input" data-i18n="qr_logo_label">Center Image</label>
+                                <button class="btn-text hidden" id="qr-logo-remove-btn" data-i18n="qr_logo_remove">Remove</button>
+                            </div>
+                            <input type="file" id="qr-logo-input" class="visually-hidden-input" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+                            <label class="pdf-picker-trigger qr-logo-trigger" for="qr-logo-input">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span class="pdf-picker-copy">
+                                    <span class="pdf-picker-title" data-i18n="qr_logo_title">Add a logo or image</span>
+                                    <span class="pdf-picker-subtitle" data-i18n="qr_logo_subtitle">Optional. The image is centered inside the QR code.</span>
+                                </span>
+                                <span class="pdf-picker-badge" data-i18n="qr_logo_badge">Optional</span>
+                            </label>
+                            <p class="pdf-picker-status" id="qr-logo-status" data-i18n="qr_logo_empty">No center image selected.</p>
+                        </div>
                     </div>
 
                     <div class="result-actions qr-action-row">

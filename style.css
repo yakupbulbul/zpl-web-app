@@ -1354,3 +1354,25 @@ select {
         padding: 1rem;
     }
 }
+
+
+.qr-logo-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.qr-logo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.qr-logo-trigger {
+    align-items: flex-start;
+}
+
+.qr-preview .qr-logo-mark image {
+    overflow: hidden;
+}
