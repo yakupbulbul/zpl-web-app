@@ -5,6 +5,8 @@ window.ZplWebApp.createQrTool = function createQrTool({
     translations,
     downloadBlobUrl
 }) {
+    const DEFAULT_SIZE = 256;
+    const DEFAULT_MARGIN = 2;
     const featureState = {
         pngDataUrl: '',
         svgMarkup: ''
@@ -29,7 +31,7 @@ window.ZplWebApp.createQrTool = function createQrTool({
         elements.qrDownloadSvgBtn.addEventListener('click', downloadSvg);
     }
 
-    async function updatePreview() {
+    function updatePreview() {
         clearFeedback();
 
         const formState = readFormState();
@@ -46,7 +48,7 @@ window.ZplWebApp.createQrTool = function createQrTool({
             return;
         }
 
-        if (!window.QRCode) {
+        if (typeof window.qrcode !== 'function') {
             resetGeneratedState();
             showEmptyState(getMessage('qr_library_missing'), true);
             return;
@@ -55,19 +57,15 @@ window.ZplWebApp.createQrTool = function createQrTool({
         syncOptionInputs(formState);
 
         try {
-            const options = {
-                width: formState.size,
-                margin: formState.margin,
-                errorCorrectionLevel: formState.errorCorrectionLevel
-            };
-            const [svgMarkup, pngDataUrl] = await Promise.all([
-                window.QRCode.toString(formState.content, { ...options, type: 'svg' }),
-                window.QRCode.toDataURL(formState.content, options)
-            ]);
+            const qr = window.qrcode(0, formState.errorCorrectionLevel);
+            qr.addData(formState.content);
+            qr.make();
 
-            featureState.svgMarkup = svgMarkup;
-            featureState.pngDataUrl = pngDataUrl;
-            showPreview(svgMarkup);
+            const cellSize = getCellSize(qr, formState.size, formState.margin);
+            featureState.svgMarkup = qr.createSvgTag({ cellSize, margin: formState.margin, scalable: true });
+            featureState.pngDataUrl = qr.createDataURL(cellSize, formState.margin);
+
+            showPreview(featureState.svgMarkup);
             clearFeedback();
             updateActionState(true);
         } catch (error) {
@@ -101,6 +99,12 @@ window.ZplWebApp.createQrTool = function createQrTool({
     function syncOptionInputs(formState) {
         elements.qrSizeInput.value = String(formState.size);
         elements.qrMarginInput.value = String(formState.margin);
+    }
+
+    function getCellSize(qr, targetSize, margin) {
+        const moduleCount = qr.getModuleCount();
+        const availableSize = targetSize - margin * 2;
+        return Math.max(1, Math.floor(availableSize / moduleCount));
     }
 
     function showPreview(svgMarkup) {
@@ -171,8 +175,8 @@ window.ZplWebApp.createQrTool = function createQrTool({
 
     function resetForm() {
         elements.qrInput.value = '';
-        elements.qrSizeInput.value = '256';
-        elements.qrMarginInput.value = '2';
+        elements.qrSizeInput.value = String(DEFAULT_SIZE);
+        elements.qrMarginInput.value = String(DEFAULT_MARGIN);
         elements.qrErrorLevelSelect.value = 'M';
         resetGeneratedState();
         clearFeedback();
