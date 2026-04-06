@@ -240,7 +240,18 @@
                         <h2 data-i18n="pdf_merge_heading">PDF Merge</h2>
                         <p data-i18n="pdf_merge_subtitle">Select multiple PDF files, reorder them, and merge them directly in your browser.</p>
                     </div>
-                    <input type="file" id="pdf-merge-input" accept="application/pdf,.pdf" multiple>
+                    <div class="pdf-picker-card">
+                        <input type="file" id="pdf-merge-input" class="visually-hidden-input" accept="application/pdf,.pdf" multiple>
+                        <label class="pdf-picker-trigger" for="pdf-merge-input">
+                            <ion-icon name="documents-outline"></ion-icon>
+                            <span class="pdf-picker-copy">
+                                <span class="pdf-picker-title">Choose PDF files</span>
+                                <span class="pdf-picker-subtitle">Pick multiple files to merge in your preferred order.</span>
+                            </span>
+                            <span class="pdf-picker-badge">Multiple</span>
+                        </label>
+                        <p class="pdf-picker-status" id="pdf-merge-status">No files selected yet.</p>
+                    </div>
                     <div class="pdf-file-list" id="pdf-merge-list"></div>
                     <p class="pdf-tool-empty" id="pdf-merge-empty" data-i18n="pdf_merge_empty">No PDF files selected yet.</p>
                     <div class="pdf-tool-actions">
@@ -258,7 +269,18 @@
                         <h2 data-i18n="pdf_organizer_heading">PDF Page Organizer</h2>
                         <p data-i18n="pdf_organizer_subtitle">Upload one PDF, then remove, reorder, or rotate its pages before exporting.</p>
                     </div>
-                    <input type="file" id="pdf-organizer-input" accept="application/pdf,.pdf">
+                    <div class="pdf-picker-card">
+                        <input type="file" id="pdf-organizer-input" class="visually-hidden-input" accept="application/pdf,.pdf">
+                        <label class="pdf-picker-trigger" for="pdf-organizer-input">
+                            <ion-icon name="albums-outline"></ion-icon>
+                            <span class="pdf-picker-copy">
+                                <span class="pdf-picker-title">Choose one PDF</span>
+                                <span class="pdf-picker-subtitle">Load a document to reorder, rotate, and remove pages.</span>
+                            </span>
+                            <span class="pdf-picker-badge">Single</span>
+                        </label>
+                        <p class="pdf-picker-status" id="pdf-organizer-status">No file selected yet.</p>
+                    </div>
                     <div class="pdf-tool-frame pdf-tool-frame-organizer">
                         <div class="pdf-tool-controls">
                             <div class="pdf-file-list" id="pdf-organizer-list"></div>
@@ -290,7 +312,18 @@
                         <h2 data-i18n="pdf_split_heading">PDF Split</h2>
                         <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
                     </div>
-                    <input type="file" id="pdf-split-input" accept="application/pdf,.pdf">
+                    <div class="pdf-picker-card">
+                        <input type="file" id="pdf-split-input" class="visually-hidden-input" accept="application/pdf,.pdf">
+                        <label class="pdf-picker-trigger" for="pdf-split-input">
+                            <ion-icon name="cut-outline"></ion-icon>
+                            <span class="pdf-picker-copy">
+                                <span class="pdf-picker-title">Choose one PDF</span>
+                                <span class="pdf-picker-subtitle">Inspect pages first, then extract selected pages or ranges.</span>
+                            </span>
+                            <span class="pdf-picker-badge">Single</span>
+                        </label>
+                        <p class="pdf-picker-status" id="pdf-split-status">No file selected yet.</p>
+                    </div>
                     <div class="settings pdf-split-settings">
                         <div class="setting-group">
                             <label for="pdf-split-mode" data-i18n="pdf_split_mode_label">Split Mode</label>

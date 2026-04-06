@@ -547,8 +547,7 @@ p {
 textarea,
 select,
 input[type="number"],
-input[type="text"],
-input[type="file"] {
+input[type="text"] {
     width: 100%;
     background: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -570,15 +569,94 @@ textarea {
 textarea:focus,
 select:focus,
 input[type="number"]:focus,
-input[type="text"]:focus,
-input[type="file"]:focus {
+input[type="text"]:focus {
     outline: none;
     border-color: rgba(47, 140, 255, 0.55);
     box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.15);
 }
 
-input[type="file"] {
+.visually-hidden-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.pdf-picker-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.pdf-picker-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    padding: 1rem 1.05rem;
+    border-radius: var(--radius-lg);
+    border: 1px dashed rgba(47, 140, 255, 0.28);
+    background: linear-gradient(135deg, rgba(47, 140, 255, 0.1), rgba(20, 184, 166, 0.06));
     cursor: pointer;
+    transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pdf-picker-trigger:hover {
+    transform: translateY(-1px);
+    border-color: rgba(47, 140, 255, 0.45);
+    box-shadow: var(--shadow-sm);
+}
+
+.visually-hidden-input:focus + .pdf-picker-trigger {
+    border-color: rgba(47, 140, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.14);
+}
+
+.pdf-picker-trigger ion-icon {
+    font-size: 1.55rem;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.pdf-picker-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    min-width: 0;
+}
+
+.pdf-picker-title {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.97rem;
+}
+
+.pdf-picker-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.pdf-picker-badge {
+    margin-left: auto;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid rgba(47, 140, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    font-size: 0.77rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pdf-picker-status {
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    padding-inline: 0.2rem;
 }
 
 .settings-block {
@@ -1152,6 +1230,14 @@ select {
     .pdf-preview-stage {
         min-height: 16rem;
         padding: 0.75rem;
+    }
+
+    .pdf-picker-trigger {
+        align-items: flex-start;
+    }
+
+    .pdf-picker-badge {
+        margin-left: 0;
     }
 
     .pdf-tool-actions .btn,

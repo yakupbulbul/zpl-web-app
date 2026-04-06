@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfMergeEmpty: document.getElementById('pdf-merge-empty'),
         pdfMergeDownloadBtn: document.getElementById('pdf-merge-download-btn'),
         pdfMergeFeedback: document.getElementById('pdf-merge-feedback'),
+        pdfMergeStatus: document.getElementById('pdf-merge-status'),
         pdfOrganizerInput: document.getElementById('pdf-organizer-input'),
         pdfOrganizerList: document.getElementById('pdf-organizer-list'),
         pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
@@ -228,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfOrganizerPreviewMeta: document.getElementById('pdf-organizer-preview-meta'),
         pdfOrganizerPreviewEmpty: document.getElementById('pdf-organizer-preview-empty'),
         pdfOrganizerPreviewCanvas: document.getElementById('pdf-organizer-preview-canvas'),
+        pdfOrganizerStatus: document.getElementById('pdf-organizer-status'),
         pdfSplitInput: document.getElementById('pdf-split-input'),
         pdfSplitMode: document.getElementById('pdf-split-mode'),
         pdfSplitRanges: document.getElementById('pdf-split-ranges'),
@@ -239,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfSplitPreviewEmpty: document.getElementById('pdf-split-preview-empty'),
         pdfSplitPreviewCanvas: document.getElementById('pdf-split-preview-canvas'),
         pdfSplitPageGrid: document.getElementById('pdf-split-page-grid'),
+        pdfSplitStatus: document.getElementById('pdf-split-status'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -530,6 +533,12 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderZplToPng(zplData, settings, requestId, options);
     }
 
+    function updatePdfPickerStatus(element, message) {
+        if (element) {
+            element.textContent = message;
+        }
+    }
+
     function initializePdfSplit() {
         elements.pdfSplitInput.addEventListener('change', async (event) => {
             const [file] = Array.from(event.target.files || []);
@@ -537,6 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            updatePdfPickerStatus(elements.pdfSplitStatus, file.name);
             await loadSplitFile(file);
         });
 
@@ -898,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            updatePdfPickerStatus(elements.pdfOrganizerStatus, file.name);
             await loadOrganizerFile(file);
         });
 
@@ -1084,6 +1095,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializePdfMerge() {
         elements.pdfMergeInput.addEventListener('change', async (event) => {
             const files = Array.from(event.target.files || []);
+            updatePdfPickerStatus(elements.pdfMergeStatus, files.length ? `${files.length} file${files.length === 1 ? '' : 's'} selected.` : 'No files selected yet.');
             await addMergeFiles(files);
             elements.pdfMergeInput.value = '';
         });
