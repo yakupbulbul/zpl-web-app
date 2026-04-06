@@ -1,314 +1,45 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const translations = {
-        en: {
-            "badge_free": "100% Free Tool",
-            "title": "ZPL to PNG Converter",
-            "subtitle": "Upload a ZPL file or paste ZPL code to generate a high-quality PNG label instantly.<br>No limits, no sign-up required, completely free.",
-            "tab_upload": "File Upload",
-            "tab_paste": "Paste Code",
-            "drop_title": "Drag & Drop your ZPL file",
-            "drop_or": "or",
-            "btn_browse": "Browse Files",
-            "drop_hint": "Supported formats: .zpl, .txt",
-            "label_zpl_code": "ZPL Code",
-            "btn_clear": "Clear",
-            "label_preset": "Label Preset",
-            "preset_shipping_4x6": "4x6 Shipping Label",
-            "preset_address_4x2": "4x2 Address Label",
-            "preset_product_2x1": "2x1 Product Label",
-            "preset_metric_100x150": "100x150 mm",
-            "preset_custom": "Custom",
-            "label_density": "Print Density",
-            "label_size": "Label Size (Inches)",
-            "btn_convert": "Convert to PNG",
-            "loader_text": "Generating Label...",
-            "result_title": "Generated Label",
-            "btn_download": "Download PNG",
-            "btn_download_pdf": "Download PDF",
-            "btn_copy_share": "Copy Share Link",
-            "btn_convert_another": "Convert Another",
-            "footer_built": "Built with",
-            "footer_by": "by Yakup",
-            "footer_github": "GitHub Profile",
-            "tool_nav_zpl": "ZPL Tools",
-            "tool_nav_pdf": "PDF Tools",
-            "pdf_tools_title": "PDF Tools",
-            "pdf_tools_subtitle": "Browser-based PDF utilities will live here alongside the existing ZPL workflow.",
-            "pdf_merge_heading": "PDF Merge",
-            "pdf_merge_subtitle": "Select multiple PDF files, reorder them, and merge them directly in your browser.",
-            "pdf_merge_empty": "No PDF files selected yet.",
-            "pdf_merge_download": "Download Merged PDF",
-            "pdf_organizer_heading": "PDF Page Organizer",
-            "pdf_organizer_subtitle": "Upload one PDF, then remove, reorder, or rotate its pages before exporting.",
-            "pdf_organizer_empty": "Upload a PDF to start organizing pages.",
-            "pdf_organizer_export": "Export Updated PDF",
-            "pdf_split_heading": "PDF Split",
-            "pdf_split_subtitle": "Extract selected pages, split every page, or generate PDFs from page ranges.",
-            "pdf_split_mode_label": "Split Mode",
-            "pdf_split_mode_selected": "Extract Selected Pages",
-            "pdf_split_mode_every": "Split Every Page",
-            "pdf_split_mode_ranges": "Split by Page Ranges",
-            "pdf_split_input_label": "Pages / Ranges",
-            "pdf_split_run": "Generate Split PDFs",
-            "pdf_split_empty": "Upload a PDF and choose how to split it.",
-            "pdf_preview_label": "Preview",
-            "pdf_preview_hint": "Upload a PDF and select a page to preview it here.",
-            "pdf_preview_empty": "Preview will appear here when a page is available.",
-            "pdf_split_preview_hint": "Upload a PDF to inspect pages before splitting.",
-            "pdf_tool_merge_title": "PDF Merge",
-            "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
-            "pdf_tool_organize_title": "PDF Page Organizer",
-            "pdf_tool_organize_desc": "Reorder, remove, and rotate pages with a lightweight browser UI.",
-            "pdf_tool_split_title": "PDF Split",
-            "pdf_tool_split_desc": "Extract page ranges or split documents into separate files on the client.",
-            "pdf_tool_coming_soon": "Coming soon",
-            "history_title": "Recent Conversions",
-            "history_subtitle": "Restore one of your last successful ZPL sessions.",
-            "history_clear": "Clear history",
-            "history_empty": "No successful conversions saved yet.",
-            "share_link_ready": "Share link copied to clipboard.",
-            "share_link_failed": "Unable to create a share link right now."
-        },
-        de: {
-            "badge_free": "100% Kostenlos",
-            "title": "ZPL zu PNG Konverter",
-            "subtitle": "ZPL-Datei hochladen oder ZPL-Code einfügen, um sofort ein hochwertiges PNG-Etikett zu generieren.<br>Keine Limits, keine Anmeldung, völlig kostenlos.",
-            "tab_upload": "Datei hochladen",
-            "tab_paste": "Code einfügen",
-            "drop_title": "ZPL-Datei hier ablegen",
-            "drop_or": "oder",
-            "btn_browse": "Durchsuchen",
-            "drop_hint": "Unterstützte Formate: .zpl, .txt",
-            "label_zpl_code": "ZPL-Code",
-            "btn_clear": "Löschen",
-            "label_density": "Druckdichte",
-            "label_size": "Etikettengröße (Zoll)",
-            "btn_convert": "Als PNG generieren",
-            "loader_text": "Etikett wird erstellt...",
-            "result_title": "Fertiges Etikett",
-            "btn_download": "PNG Herunterladen",
-            "btn_convert_another": "Neues Etikett",
-            "footer_built": "Erstellt mit",
-            "footer_by": "von Yakup",
-            "footer_github": "GitHub-Profil"
-        },
-        tr: {
-            "badge_free": "Tamamen Ücretsiz",
-            "title": "ZPL'den PNG'ye Dönüştürücü",
-            "subtitle": "Anında yüksek kaliteli bir PNG etiketi oluşturmak için ZPL dosyanızı yükleyin veya kodunuzu yapıştırın.<br>Sınır yok, kayıt olmak yok, tamamen ücretsiz.",
-            "tab_upload": "Dosya Yükle",
-            "tab_paste": "Kodu Yapıştır",
-            "drop_title": "ZPL dosyanızı sürükleyip bırakın",
-            "drop_or": "veya",
-            "btn_browse": "Dosya Seç",
-            "drop_hint": "Desteklenen formatlar: .zpl, .txt",
-            "label_zpl_code": "ZPL Kodu",
-            "btn_clear": "Temizle",
-            "label_density": "Baskı Yoğunluğu",
-            "label_size": "Etiket Boyutu (İnç)",
-            "btn_convert": "PNG'ye Çevir",
-            "loader_text": "Etiket Oluşturuluyor...",
-            "result_title": "Oluşturulan Etiket",
-            "btn_download": "PNG İndir",
-            "btn_convert_another": "Yeni Dönüştür",
-            "footer_built": "Geliştirici:",
-            "footer_by": "Yakup",
-            "footer_github": "GitHub Profili"
-        },
-        nl: {
-            "badge_free": "100% Gratis",
-            "title": "ZPL naar PNG Converter",
-            "subtitle": "Upload een ZPL-bestand of plak ZPL-code om direct een PNG-label van hoge kwaliteit te genereren.<br>Geen limieten, geen account nodig, helemaal gratis.",
-            "tab_upload": "Bestand uploaden",
-            "tab_paste": "Code plakken",
-            "drop_title": "Sleep je ZPL-bestand hierheen",
-            "drop_or": "of",
-            "btn_browse": "Bladeren",
-            "drop_hint": "Ondersteunde formaten: .zpl, .txt",
-            "label_zpl_code": "ZPL Code",
-            "btn_clear": "Wissen",
-            "label_density": "Afdrukdichtheid",
-            "label_size": "Labelformaat (Inch)",
-            "btn_convert": "Converteren naar PNG",
-            "loader_text": "Label genereren...",
-            "result_title": "Gegenereerd Label",
-            "btn_download": "PNG Downloaden",
-            "btn_convert_another": "Nieuw Label",
-            "footer_built": "Gemaakt met",
-            "footer_by": "door Yakup",
-            "footer_github": "GitHub Profiel"
-        },
-        fr: {
-            "badge_free": "100% Gratuit",
-            "title": "Convertisseur ZPL vers PNG",
-            "subtitle": "Téléchargez un fichier ZPL ou collez le code ZPL pour générer instantanément une étiquette PNG de haute qualité.<br>Sans limites, sans inscription, totalement gratuit.",
-            "tab_upload": "Télécharger Fichier",
-            "tab_paste": "Coller le Code",
-            "drop_title": "Glissez-déposez votre fichier ZPL",
-            "drop_or": "ou",
-            "btn_browse": "Parcourir",
-            "drop_hint": "Formats supportés : .zpl, .txt",
-            "label_zpl_code": "Code ZPL",
-            "btn_clear": "Effacer",
-            "label_density": "Densité d'impression",
-            "label_size": "Taille de l'étiquette (Pouces)",
-            "btn_convert": "Convertir en PNG",
-            "loader_text": "Génération en cours...",
-            "result_title": "Étiquette Générée",
-            "btn_download": "Télécharger PNG",
-            "btn_convert_another": "Nouvelle Étiquette",
-            "footer_built": "Fait avec",
-            "footer_by": "par Yakup",
-            "footer_github": "Profil GitHub"
-        },
-        it: {
-            "badge_free": "100% Gratuito",
-            "title": "Convertitore da ZPL a PNG",
-            "subtitle": "Carica un file ZPL o incolla il codice ZPL per generare all'istante un'etichetta PNG di alta qualità.<br>Nessun limite, nessuna registrazione richiesta, completamente gratuito.",
-            "tab_upload": "Carica File",
-            "tab_paste": "Incolla Codice",
-            "drop_title": "Trascina qui il tuo file ZPL",
-            "drop_or": "oppure",
-            "btn_browse": "Sfoglia",
-            "drop_hint": "Formati supportati: .zpl, .txt",
-            "label_zpl_code": "Codice ZPL",
-            "btn_clear": "Svuota",
-            "label_density": "Densità di Stampa",
-            "label_size": "Dimensione Etichetta (Pollici)",
-            "btn_convert": "Converti in PNG",
-            "loader_text": "Generazione in corso...",
-            "result_title": "Etichetta Generata",
-            "btn_download": "Scarica PNG",
-            "btn_convert_another": "Nuova Etichetta",
-            "footer_built": "Creato con",
-            "footer_by": "da Yakup",
-            "footer_github": "Profilo GitHub"
-        }
-    };
+    const app = window.ZplWebApp || {};
+    const translations = app.translations || {};
+    const config = app.config || {};
+    const elements = (app.collectElements || (() => ({})))(document);
+    const state = (app.createState || (() => ({})))();
+    const shared = app.shared || {};
+    const HISTORY_STORAGE_KEY = config.HISTORY_STORAGE_KEY || 'zpl-conversion-history';
+    const HISTORY_LIMIT = config.HISTORY_LIMIT || 10;
+    const PDF_WORKER_SRC = config.PDF_WORKER_SRC || '';
+    const labelPresets = config.labelPresets || {};
+    const { cloneArrayBuffer, escapeHtml, toggleHidden } = shared;
 
-    const elements = {
-        tabs: document.querySelectorAll('.tab'),
-        tabContents: document.querySelectorAll('.tab-content'),
-        toolTabs: document.querySelectorAll('.tool-tab'),
-        toolPanels: document.querySelectorAll('.tool-panel'),
-        dropZone: document.getElementById('drop-zone'),
-        fileInput: document.getElementById('file-input'),
-        browseBtn: document.getElementById('browse-btn'),
-        fileInfo: document.getElementById('file-info'),
-        fileNameDisplay: document.getElementById('file-name'),
-        removeFileBtn: document.getElementById('remove-file-btn'),
-        zplInput: document.getElementById('zpl-input'),
-        clearBtn: document.getElementById('clear-btn'),
-        presetSelect: document.getElementById('preset'),
-        densitySelect: document.getElementById('density'),
-        widthInput: document.getElementById('width'),
-        heightInput: document.getElementById('height'),
-        convertBtn: document.getElementById('convert-btn'),
-        loader: document.getElementById('loader'),
-        resultSection: document.getElementById('result-section'),
-        imagePreview: document.getElementById('image-preview'),
-        downloadBtn: document.getElementById('download-btn'),
-        downloadPdfBtn: document.getElementById('download-pdf-btn'),
-        copyLinkBtn: document.getElementById('copy-link-btn'),
-        newConvertBtn: document.getElementById('new-convert-btn'),
-        closeResultBtn: document.getElementById('close-result-btn'),
-        historyList: document.getElementById('history-list'),
-        historyEmpty: document.getElementById('history-empty'),
-        clearHistoryBtn: document.getElementById('clear-history-btn'),
-        pdfMergeInput: document.getElementById('pdf-merge-input'),
-        pdfMergeList: document.getElementById('pdf-merge-list'),
-        pdfMergeEmpty: document.getElementById('pdf-merge-empty'),
-        pdfMergeDownloadBtn: document.getElementById('pdf-merge-download-btn'),
-        pdfMergeFeedback: document.getElementById('pdf-merge-feedback'),
-        pdfMergeStatus: document.getElementById('pdf-merge-status'),
-        pdfMergePicker: document.getElementById('pdf-merge-picker'),
-        pdfOrganizerInput: document.getElementById('pdf-organizer-input'),
-        pdfOrganizerList: document.getElementById('pdf-organizer-list'),
-        pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
-        pdfOrganizerExportBtn: document.getElementById('pdf-organizer-export-btn'),
-        pdfOrganizerFeedback: document.getElementById('pdf-organizer-feedback'),
-        pdfOrganizerPreviewMeta: document.getElementById('pdf-organizer-preview-meta'),
-        pdfOrganizerPreviewEmpty: document.getElementById('pdf-organizer-preview-empty'),
-        pdfOrganizerPreviewCanvas: document.getElementById('pdf-organizer-preview-canvas'),
-        pdfOrganizerStatus: document.getElementById('pdf-organizer-status'),
-        pdfOrganizerPicker: document.getElementById('pdf-organizer-picker'),
-        pdfSplitInput: document.getElementById('pdf-split-input'),
-        pdfSplitMode: document.getElementById('pdf-split-mode'),
-        pdfSplitRanges: document.getElementById('pdf-split-ranges'),
-        pdfSplitRunBtn: document.getElementById('pdf-split-run-btn'),
-        pdfSplitOutputList: document.getElementById('pdf-split-output-list'),
-        pdfSplitEmpty: document.getElementById('pdf-split-empty'),
-        pdfSplitFeedback: document.getElementById('pdf-split-feedback'),
-        pdfSplitPreviewMeta: document.getElementById('pdf-split-preview-meta'),
-        pdfSplitPreviewEmpty: document.getElementById('pdf-split-preview-empty'),
-        pdfSplitPreviewCanvas: document.getElementById('pdf-split-preview-canvas'),
-        pdfSplitPageGrid: document.getElementById('pdf-split-page-grid'),
-        pdfSplitStatus: document.getElementById('pdf-split-status'),
-        pdfSplitPicker: document.getElementById('pdf-split-picker'),
-        actionFeedback: document.getElementById('action-feedback'),
-        themeBtn: document.getElementById('theme-btn'),
-        themeIcon: document.getElementById('theme-icon'),
-        langBtn: document.getElementById('lang-btn')
-    };
+    initializeApp();
 
-    const state = {
-        currentMode: 'upload',
-        selectedFile: null,
-        generatedBlobUrl: null,
-        generatedImageBlob: null,
-        currentTool: 'zpl',
-        livePreviewTimer: null,
-        renderRequestSequence: 0,
-        latestRenderRequest: 0,
-        applyingPreset: false,
-        conversionHistory: [],
-        lastRenderedZpl: '',
-        lastRenderSettings: null,
-        pdfMergeFiles: [],
-        pdfOrganizerSourceBytes: null,
-        pdfOrganizerPages: [],
-        pdfOrganizerPreviewDocument: null,
-        pdfOrganizerActiveIndex: 0,
-        pdfOrganizerPreviewSequence: 0,
-        pdfSplitSourceBytes: null,
-        pdfSplitPageCount: 0,
-        pdfSplitOutputs: [],
-        pdfSplitPreviewDocument: null,
-        pdfSplitActivePage: 1,
-        pdfSplitPreviewSequence: 0
-    };
+    function initializeApp() {
+        configurePdfPreviewRuntime();
 
-    const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
-    const HISTORY_LIMIT = 10;
+        [
+            initializeTheme,
+            initializeLanguage,
+            initializeToolSuite,
+            initializeTabs,
+            initializeUpload,
+            initializePresets,
+            initializeHistory,
+            initializePaste,
+            initializeActions,
+            initializeSharedState,
+            initializePdfMerge,
+            initializePdfOrganizer,
+            initializePdfSplit
+        ].forEach((initializer) => initializer());
 
-    function configurePdfPreviewRuntime() {
-        if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
+        updateConvertButtonState();
     }
 
-    const labelPresets = {
-        shipping_4x6: { width: '4', height: '6', density: '8' },
-        address_4x2: { width: '4', height: '2', density: '8' },
-        product_2x1: { width: '2', height: '1', density: '8' },
-        metric_100x150: { width: '3.94', height: '5.91', density: '8' }
-    };
-
-    configurePdfPreviewRuntime();
-    initializeTheme();
-    initializeLanguage();
-    initializeToolSuite();
-    initializeTabs();
-    initializeUpload();
-    initializePresets();
-    initializeHistory();
-    initializePaste();
-    initializeActions();
-    initializeSharedState();
-    initializePdfMerge();
-    initializePdfOrganizer();
-    initializePdfSplit();
-    updateConvertButtonState();
+    function configurePdfPreviewRuntime() {
+        if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions && PDF_WORKER_SRC) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+        }
+    }
 
     function initializeTheme() {
         setTheme(getPreferredTheme());
@@ -897,10 +628,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pdfSplitFeedback.classList.remove('is-error');
     }
 
-    function cloneArrayBuffer(buffer) {
-        return buffer.slice(0);
-    }
-
     async function loadPdfPreviewDocument(bytes) {
         if (!window.pdfjsLib) {
             throw new Error('PDF preview library is unavailable.');
@@ -1425,15 +1152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await requestRender(entry.zpl, getRenderSettings());
     }
 
-    function escapeHtml(value) {
-        return value
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
     function initializeActions() {
         elements.convertBtn.addEventListener('click', async () => {
             const zplData = await getCurrentZplData();
@@ -1694,4 +1412,5 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.resultSection.classList.add('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
 });
