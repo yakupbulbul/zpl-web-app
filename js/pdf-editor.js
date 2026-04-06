@@ -22,6 +22,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         isDrawingSignature: false,
         hasSignatureStroke: false
     };
+    const IMAGE_FILE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
     function init() {
         if (!elements.pdfEditorInput) {
@@ -129,6 +130,11 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         elements.pdfEditorStampConfig.classList.toggle('hidden', !isStamp);
         elements.pdfEditorPlacementHint.textContent = getMessage(isText ? 'pdf_editor_hint_text' : isImage ? 'pdf_editor_hint_image' : isSignature ? 'pdf_editor_signature_saved' : 'pdf_editor_hint_stamp');
         updateStampUi();
+    }
+
+    function refreshOverlayUi() {
+        renderOverlayList();
+        renderOverlayPreview();
     }
 
     async function loadPdfPreviewDocument(bytes) {
@@ -267,20 +273,14 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        const fontSize = Number(elements.pdfEditorFontSizeInput.value) || 18;
-        featureState.overlays.push({
-            id: featureState.nextOverlayId++,
+        addOverlay({
             type: 'text',
-            pageNumber: featureState.activePage,
             xRatio: position.xRatio,
             yRatio: position.yRatio,
             text: content,
-            fontSize,
+            fontSize: Number(elements.pdfEditorFontSizeInput.value) || 18,
             color: elements.pdfEditorTextColorInput.value || '#0f172a'
         });
-        hideFeedback();
-        renderOverlayList();
-        renderOverlayPreview();
     }
 
     function placeImageOverlay(position) {
@@ -289,18 +289,13 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        featureState.overlays.push({
-            id: featureState.nextOverlayId++,
+        addOverlay({
             type: 'image',
-            pageNumber: featureState.activePage,
             xRatio: position.xRatio,
             yRatio: position.yRatio,
             widthRatio: Number(elements.pdfEditorImageScaleInput.value || 24) / 100,
             image: featureState.imageAsset
         });
-        hideFeedback();
-        renderOverlayList();
-        renderOverlayPreview();
     }
 
     function placeSignatureOverlay(position) {
@@ -309,18 +304,13 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        featureState.overlays.push({
-            id: featureState.nextOverlayId++,
+        addOverlay({
             type: 'signature',
-            pageNumber: featureState.activePage,
             xRatio: position.xRatio,
             yRatio: position.yRatio,
             widthRatio: Number(elements.pdfEditorSignatureScaleInput.value || 26) / 100,
             image: featureState.signatureAsset
         });
-        hideFeedback();
-        renderOverlayList();
-        renderOverlayPreview();
     }
 
     function placeStampOverlay(position) {
@@ -334,19 +324,14 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        featureState.overlays.push({
-            id: featureState.nextOverlayId++,
+        addOverlay({
             type: stampType === 'date' ? 'date' : 'stamp',
-            pageNumber: featureState.activePage,
             xRatio: position.xRatio,
             yRatio: position.yRatio,
             text: stampText,
             fontSize: stampType === 'date' ? 14 : 18,
             color: stampType === 'date' ? '#0f172a' : '#b91c1c'
         });
-        hideFeedback();
-        renderOverlayList();
-        renderOverlayPreview();
     }
 
     function updateStampUi() {
@@ -370,29 +355,15 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-            featureState.imageAsset = null;
-            elements.pdfEditorImageStatus.textContent = getMessage('pdf_editor_image_invalid');
-            showFeedback(getMessage('pdf_editor_image_invalid'), true);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            featureState.imageAsset = {
-                name: file.name,
-                mimeType: file.type,
-                dataUrl: typeof reader.result === 'string' ? reader.result : ''
-            };
+        loadImageAsset(file).then((asset) => {
+            featureState.imageAsset = asset;
             elements.pdfEditorImageStatus.textContent = file.name;
             hideFeedback();
-        };
-        reader.onerror = () => {
+        }).catch(() => {
             featureState.imageAsset = null;
             elements.pdfEditorImageStatus.textContent = getMessage('pdf_editor_image_invalid');
             showFeedback(getMessage('pdf_editor_image_invalid'), true);
-        };
-        reader.readAsDataURL(file);
+        });
     }
 
     function setupSignaturePad() {
@@ -475,25 +446,17 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
 
     function handleSignatureUpload(event) {
         const [file] = Array.from(event.target.files || []);
-        if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-            showFeedback(getMessage('pdf_editor_signature_invalid'), true);
+        if (!file) {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            featureState.signatureAsset = {
-                name: file.name,
-                mimeType: file.type,
-                dataUrl: typeof reader.result === 'string' ? reader.result : ''
-            };
+        loadImageAsset(file).then((asset) => {
+            featureState.signatureAsset = asset;
             elements.pdfEditorSignatureStatus.textContent = file.name;
             hideFeedback();
-        };
-        reader.onerror = () => {
+        }).catch(() => {
             showFeedback(getMessage('pdf_editor_signature_invalid'), true);
-        };
-        reader.readAsDataURL(file);
+        });
     }
 
     function renderOverlayList() {
@@ -511,13 +474,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         overlays.forEach((overlay) => {
             const row = document.createElement('div');
             row.className = 'pdf-editor-overlay-row';
-            const title = overlay.type === 'text'
-                ? `${getMessage('pdf_editor_overlay_text')}: ${overlay.text}`
-                : overlay.type === 'image'
-                    ? `${getMessage('pdf_editor_overlay_image')}: ${overlay.image.name}`
-                    : overlay.type === 'signature'
-                        ? `${getMessage('pdf_editor_tool_signature')}: ${overlay.image.name}`
-                        : `${getMessage('pdf_editor_tool_stamp')}: ${overlay.text}`;
+            const title = getOverlayListTitle(overlay);
             row.innerHTML = `
                 <span class="pdf-editor-overlay-name">${escapeHtml(title)}</span>
                 <button class="btn-text" type="button">${getMessage('pdf_editor_remove_overlay')}</button>
@@ -537,7 +494,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             item.style.left = `${overlay.xRatio * 100}%`;
             item.style.top = `${overlay.yRatio * 100}%`;
 
-            if (overlay.type === 'text' || overlay.type === 'stamp' || overlay.type === 'date') {
+            if (isTextBasedOverlay(overlay)) {
                 item.textContent = overlay.text;
                 item.style.fontSize = `${Math.max(12, overlay.fontSize * 0.85)}px`;
                 item.style.color = overlay.color;
@@ -560,8 +517,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
 
     function removeOverlay(overlayId) {
         featureState.overlays = featureState.overlays.filter((overlay) => overlay.id !== overlayId);
-        renderOverlayList();
-        renderOverlayPreview();
+        refreshOverlayUi();
     }
 
     async function exportUpdatedPdf() {
@@ -580,36 +536,12 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
                 const page = document.getPage(overlay.pageNumber - 1);
                 const { width, height } = page.getSize();
 
-                if (overlay.type === 'text' || overlay.type === 'stamp' || overlay.type === 'date') {
-                    const color = hexToRgb(overlay.color);
-                    page.drawText(overlay.text, {
-                        x: overlay.xRatio * width,
-                        y: height - (overlay.yRatio * height) - overlay.fontSize,
-                        size: overlay.fontSize,
-                        font: helvetica,
-                        color: rgb(color.r, color.g, color.b)
-                    });
+                if (isTextBasedOverlay(overlay)) {
+                    drawTextOverlay(page, overlay, helvetica, rgb);
                     continue;
                 }
 
-                const key = overlay.image.dataUrl;
-                if (!imageCache.has(key)) {
-                    const bytes = await fetch(key).then((response) => response.arrayBuffer());
-                    const embedded = overlay.image.mimeType === 'image/png'
-                        ? await document.embedPng(bytes)
-                        : await document.embedJpg(bytes);
-                    imageCache.set(key, embedded);
-                }
-
-                const embeddedImage = imageCache.get(key);
-                const targetWidth = width * overlay.widthRatio;
-                const scaledHeight = targetWidth * (embeddedImage.height / embeddedImage.width);
-                page.drawImage(embeddedImage, {
-                    x: overlay.xRatio * width - targetWidth / 2,
-                    y: height - (overlay.yRatio * height) - scaledHeight / 2,
-                    width: targetWidth,
-                    height: scaledHeight
-                });
+                await drawImageOverlay(document, page, overlay, imageCache);
             }
 
             applyDocumentOverlays(document, helvetica);
@@ -656,6 +588,100 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
                     color: window.PDFLib.rgb(0.15, 0.23, 0.35)
                 });
             }
+        });
+    }
+
+    function addOverlay(overlay) {
+        featureState.overlays.push({
+            id: featureState.nextOverlayId++,
+            pageNumber: featureState.activePage,
+            ...overlay
+        });
+        hideFeedback();
+        refreshOverlayUi();
+    }
+
+    function isTextBasedOverlay(overlay) {
+        return overlay.type === 'text' || overlay.type === 'stamp' || overlay.type === 'date';
+    }
+
+    function getOverlayListTitle(overlay) {
+        if (overlay.type === 'text') {
+            return `${getMessage('pdf_editor_overlay_text')}: ${overlay.text}`;
+        }
+        if (overlay.type === 'image') {
+            return `${getMessage('pdf_editor_overlay_image')}: ${overlay.image.name}`;
+        }
+        if (overlay.type === 'signature') {
+            return `${getMessage('pdf_editor_tool_signature')}: ${overlay.image.name}`;
+        }
+        return `${getMessage('pdf_editor_tool_stamp')}: ${overlay.text}`;
+    }
+
+    function drawTextOverlay(page, overlay, font, rgb) {
+        const { width, height } = page.getSize();
+        const color = hexToRgb(overlay.color);
+        page.drawText(overlay.text, {
+            x: overlay.xRatio * width,
+            y: height - (overlay.yRatio * height) - overlay.fontSize,
+            size: overlay.fontSize,
+            font,
+            color: rgb(color.r, color.g, color.b)
+        });
+    }
+
+    async function drawImageOverlay(document, page, overlay, imageCache) {
+        const embeddedImage = await getEmbeddedImage(document, overlay.image, imageCache);
+        const { width, height } = page.getSize();
+        const targetWidth = width * overlay.widthRatio;
+        const scaledHeight = targetWidth * (embeddedImage.height / embeddedImage.width);
+
+        page.drawImage(embeddedImage, {
+            x: overlay.xRatio * width - targetWidth / 2,
+            y: height - (overlay.yRatio * height) - scaledHeight / 2,
+            width: targetWidth,
+            height: scaledHeight
+        });
+    }
+
+    async function getEmbeddedImage(document, image, imageCache) {
+        const key = image.dataUrl;
+        if (!imageCache.has(key)) {
+            const bytes = await fetch(key).then((response) => response.arrayBuffer());
+            const embedded = image.mimeType === 'image/png'
+                ? await document.embedPng(bytes)
+                : await document.embedJpg(bytes);
+            imageCache.set(key, embedded);
+        }
+
+        return imageCache.get(key);
+    }
+
+    function loadImageAsset(file) {
+        if (!IMAGE_FILE_TYPES.includes(file.type)) {
+            return Promise.reject(new Error('Unsupported image type'));
+        }
+
+        return readFileAsDataUrl(file).then((dataUrl) => ({
+            name: file.name,
+            mimeType: file.type,
+            dataUrl
+        }));
+    }
+
+    function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                    return;
+                }
+
+                reject(new Error('Failed to read file'));
+            };
+            reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+            reader.readAsDataURL(file);
         });
     }
 
