@@ -375,17 +375,73 @@
 
         <section class="tool-panel hidden" id="qr-tools-panel">
             <div class="qr-workspace">
-                <section class="glass-panel qr-panel">
+                <section class="glass-panel qr-panel qr-config-panel">
                     <div class="section-heading">
                         <span class="section-kicker">QR</span>
                         <h2 data-i18n="qr_heading">QR Code Generator</h2>
                         <p data-i18n="qr_subtitle">Generate QR codes in the browser from text, URLs, and arbitrary strings with export-ready output.</p>
                     </div>
-                    <div class="qr-placeholder" id="qr-placeholder">
-                        <ion-icon name="qr-code-outline"></ion-icon>
-                        <h3 data-i18n="qr_placeholder_title">Standalone QR workspace</h3>
-                        <p data-i18n="qr_placeholder_text">QR input, preview, and export controls will live here as a separate top-level tool.</p>
+
+                    <div class="textarea-wrapper qr-input-wrapper">
+                        <div class="textarea-header">
+                            <label for="qr-input" data-i18n="qr_content_label">QR Content</label>
+                            <button class="btn-text" id="qr-reset-btn" data-i18n="qr_reset">Clear</button>
+                        </div>
+                        <textarea id="qr-input" placeholder="https://example.com/order/12345" spellcheck="false"></textarea>
                     </div>
+
+                    <div class="settings-block qr-settings-block">
+                        <div class="section-heading section-heading-inline">
+                            <span class="section-kicker" data-i18n="qr_options_kicker">Options</span>
+                            <h3 data-i18n="qr_options_heading">QR Output</h3>
+                        </div>
+                        <div class="settings qr-settings-grid">
+                            <div class="setting-group">
+                                <label for="qr-size" data-i18n="qr_size_label">Size (px)</label>
+                                <input type="number" id="qr-size" min="128" max="1024" step="32" value="256">
+                            </div>
+                            <div class="setting-group">
+                                <label for="qr-margin" data-i18n="qr_margin_label">Margin</label>
+                                <input type="number" id="qr-margin" min="0" max="16" step="1" value="2">
+                            </div>
+                            <div class="setting-group">
+                                <label for="qr-error-level" data-i18n="qr_error_level_label">Error Correction</label>
+                                <div class="select-wrapper">
+                                    <select id="qr-error-level">
+                                        <option value="L" data-i18n="qr_error_level_l">Low (L)</option>
+                                        <option value="M" data-i18n="qr_error_level_m" selected>Medium (M)</option>
+                                        <option value="Q" data-i18n="qr_error_level_q">Quartile (Q)</option>
+                                        <option value="H" data-i18n="qr_error_level_h">High (H)</option>
+                                    </select>
+                                    <ion-icon name="chevron-down-outline"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-actions qr-action-row">
+                        <button class="btn btn-primary" id="qr-download-png-btn" disabled>
+                            <ion-icon name="download-outline"></ion-icon>
+                            <span data-i18n="qr_download_png">Download PNG</span>
+                        </button>
+                        <button class="btn btn-outline" id="qr-download-svg-btn" disabled>
+                            <ion-icon name="code-slash-outline"></ion-icon>
+                            <span data-i18n="qr_download_svg">Download SVG</span>
+                        </button>
+                    </div>
+                    <p class="action-feedback hidden" id="qr-feedback"></p>
+                </section>
+
+                <section class="glass-panel qr-panel qr-preview-panel">
+                    <div class="section-heading section-heading-inline">
+                        <span class="section-kicker" data-i18n="qr_preview_kicker">Preview</span>
+                        <h3 data-i18n="qr_preview_heading">Live QR Preview</h3>
+                    </div>
+                    <div class="qr-preview-stage" id="qr-preview-stage">
+                        <p class="qr-preview-empty" id="qr-preview-empty" data-i18n="qr_empty_state">Enter text or a URL to generate a QR code preview.</p>
+                        <div class="qr-preview hidden" id="qr-preview"></div>
+                    </div>
+                    <p class="qr-preview-caption" data-i18n="qr_preview_caption">Preview updates automatically as content or options change.</p>
                 </section>
             </div>
         </section>
@@ -411,6 +467,7 @@
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/lz-string/libs/lz-string.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="js/app-config.js"></script>
     <script src="js/app-translations.js"></script>
     <script src="js/app-dom.js"></script>
