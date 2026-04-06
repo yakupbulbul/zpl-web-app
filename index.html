@@ -59,7 +59,21 @@
                 sign-up required, completely free.</p>
         </header>
 
-        <section class="converter-box glass-panel">
+        <section class="tool-suite-nav glass-panel-small">
+            <div class="tool-suite-tabs" role="tablist" aria-label="Tool Suite Navigation">
+                <button class="tool-tab active" data-tool="zpl">
+                    <ion-icon name="pricetag-outline"></ion-icon>
+                    <span data-i18n="tool_nav_zpl">ZPL Tools</span>
+                </button>
+                <button class="tool-tab" data-tool="pdf">
+                    <ion-icon name="documents-outline"></ion-icon>
+                    <span data-i18n="tool_nav_pdf">PDF Tools</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="tool-panel active" id="zpl-tools-panel">
+            <section class="converter-box glass-panel">
             <div class="tabs">
                 <button class="tab active" data-tab="upload">
                     <ion-icon name="cloud-upload-outline"></ion-icon>
@@ -147,7 +161,7 @@
         </section>
 
         <!-- Result Section -->
-        <section class="result-section hidden glass-panel" id="result-section">
+            <section class="result-section hidden glass-panel" id="result-section">
             <div class="result-header">
                 <h2 data-i18n="result_title">Generated Label</h2>
                 <button class="btn-icon btn-close-result" id="close-result-btn">
@@ -165,6 +179,42 @@
                 <button class="btn btn-outline" id="new-convert-btn" data-i18n="btn_convert_another">Convert
                     Another</button>
             </div>
+            </section>
+        </section>
+
+        <section class="tool-panel hidden" id="pdf-tools-panel">
+            <section class="glass-panel pdf-placeholder-panel">
+                <div class="section-heading">
+                    <h2 data-i18n="pdf_tools_title">PDF Tools</h2>
+                    <p data-i18n="pdf_tools_subtitle">Browser-based PDF utilities will live here alongside the existing ZPL workflow.</p>
+                </div>
+                <div class="pdf-tool-grid">
+                    <article class="pdf-tool-card">
+                        <div class="pdf-tool-card-icon">
+                            <ion-icon name="git-merge-outline"></ion-icon>
+                        </div>
+                        <h3 data-i18n="pdf_tool_merge_title">PDF Merge</h3>
+                        <p data-i18n="pdf_tool_merge_desc">Combine multiple PDF files in the browser without leaving the app.</p>
+                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
+                    </article>
+                    <article class="pdf-tool-card">
+                        <div class="pdf-tool-card-icon">
+                            <ion-icon name="layers-outline"></ion-icon>
+                        </div>
+                        <h3 data-i18n="pdf_tool_organize_title">PDF Page Organizer</h3>
+                        <p data-i18n="pdf_tool_organize_desc">Reorder, remove, and rotate pages with a lightweight browser UI.</p>
+                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
+                    </article>
+                    <article class="pdf-tool-card">
+                        <div class="pdf-tool-card-icon">
+                            <ion-icon name="cut-outline"></ion-icon>
+                        </div>
+                        <h3 data-i18n="pdf_tool_split_title">PDF Split</h3>
+                        <p data-i18n="pdf_tool_split_desc">Extract page ranges or split documents into separate files on the client.</p>
+                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
+                    </article>
+                </div>
+            </section>
         </section>
     </main>
 

@@ -21,7 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
             "btn_convert_another": "Convert Another",
             "footer_built": "Built with",
             "footer_by": "by Yakup",
-            "footer_github": "GitHub Profile"
+            "footer_github": "GitHub Profile",
+            "tool_nav_zpl": "ZPL Tools",
+            "tool_nav_pdf": "PDF Tools",
+            "pdf_tools_title": "PDF Tools",
+            "pdf_tools_subtitle": "Browser-based PDF utilities will live here alongside the existing ZPL workflow.",
+            "pdf_tool_merge_title": "PDF Merge",
+            "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
+            "pdf_tool_organize_title": "PDF Page Organizer",
+            "pdf_tool_organize_desc": "Reorder, remove, and rotate pages with a lightweight browser UI.",
+            "pdf_tool_split_title": "PDF Split",
+            "pdf_tool_split_desc": "Extract page ranges or split documents into separate files on the client.",
+            "pdf_tool_coming_soon": "Coming soon"
         },
         de: {
             "badge_free": "100% Kostenlos",
@@ -143,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const elements = {
         tabs: document.querySelectorAll('.tab'),
         tabContents: document.querySelectorAll('.tab-content'),
+        toolTabs: document.querySelectorAll('.tool-tab'),
+        toolPanels: document.querySelectorAll('.tool-panel'),
         dropZone: document.getElementById('drop-zone'),
         fileInput: document.getElementById('file-input'),
         browseBtn: document.getElementById('browse-btn'),
@@ -169,11 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         currentMode: 'upload',
         selectedFile: null,
-        generatedBlobUrl: null
+        generatedBlobUrl: null,
+        currentTool: 'zpl'
     };
 
     initializeTheme();
     initializeLanguage();
+    initializeToolSuite();
     initializeTabs();
     initializeUpload();
     initializePaste();
@@ -229,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('[data-i18n]').forEach((element) => {
             const key = element.getAttribute('data-i18n');
-            const translation = translations[normalizedLang][key];
+            const translation = translations[normalizedLang][key] || translations.en[key];
 
             if (translation) {
                 element.innerHTML = translation;
@@ -242,6 +257,28 @@ document.addEventListener('DOMContentLoaded', () => {
             tab.addEventListener('click', () => {
                 switchInputTab(tab.dataset.tab);
             });
+        });
+    }
+
+    function initializeToolSuite() {
+        elements.toolTabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                switchToolPanel(tab.dataset.tool);
+            });
+        });
+    }
+
+    function switchToolPanel(toolName) {
+        state.currentTool = toolName;
+
+        elements.toolTabs.forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.tool === toolName);
+        });
+
+        elements.toolPanels.forEach((panel) => {
+            const isActive = panel.id === `${toolName}-tools-panel`;
+            panel.classList.toggle('hidden', !isActive);
+            panel.classList.toggle('active', isActive);
         });
     }
 
