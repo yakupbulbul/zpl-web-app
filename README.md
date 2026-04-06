@@ -1,66 +1,42 @@
-# ZPL to PNG Converter 🚀
+# ZPL + PDF Tool Suite
 
-<div align="center">
-  <img src="assets/logo.png" alt="ZPL to PNG Converter Logo" width="150"/>
-  
-  <p><strong>A completely free, sleek, and client-side web application that instantly converts Zebra Programming Language (ZPL) code into high-quality PNG shipping labels.</strong></p>
+Client-side utility suite for working with Zebra Programming Language labels and PDF files in the browser.
 
-  <h3><a href="https://yakupbulbul.github.io/zpl-web-app/" target="_blank">🌐 Try the Live App Here</a></h3>
+## What It Includes
 
-  <a href="https://www.buymeacoffee.com/yakupbulbul" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 181px !important;" >
-  </a>
-</div>
+- ZPL upload and paste workflow with Labelary-based live rendering
+- PNG and PDF export for rendered labels
+- Debounced live preview in the ZPL editor
+- Preset label sizes and densities
+- Local conversion history stored in `localStorage`
+- Shareable ZPL session links via compressed URL hashes
+- PDF merge in the browser
+- PDF page organizer with reorder, remove, and rotate actions
+- PDF split for selected pages, per-page output, and page ranges
 
----
+## Stack
 
-## ✨ Features
+- Vanilla HTML, CSS, and JavaScript
+- Labelary API for ZPL preview rendering
+- `pdf-lib` for browser-side PDF generation and manipulation
+- `lz-string` for compressed share links
 
-- 🌍 **Native Multilingual Support**: Fully localized in 6 languages: English, German, Turkish, Dutch, French, and Italian.
-- 🌓 **Beautiful Dark/Light Themes**: A modern Glassmorphism UI that smoothly transitions between dark and light modes, saving your preference automatically.
-- ⚡️ **Instant Conversion**: Client-side processing generates high-quality PNG labels instantly via the Labelary API.
-- 📁 **Drag-and-Drop & Upload**: Easily drag-and-drop or select `.zpl` / `.txt` text files.
-- 📝 **Live Code Editor**: Quickly paste and tweak raw ZPL code directly in the browser's designated tab.
-- ⚙️ **Customizable Output**: Select standard print density (e.g., 203dpi/8dpmm) and resize dimensions down to the inch (e.g., 4" x 6").
-- 🔒 **100% Free & Private**: No sign-ups, no tracking, no rate limits. All operations are kept as private as possible in the browser.
+## Running Locally
 
-## 🛠 Tech Stack
+1. Clone the repository.
+2. Serve it with any static file server.
+3. Open the site in a modern browser.
 
-Built entirely with simple but powerful web technologies:
-- **Core**: Vanilla HTML5, CSS3, & JavaScript (ES6+).
-- **Styling**: Custom CSS variables, Flexbox layouts, and Glassmorphism aesthetics.
-- **API**: [Labelary API](http://labelary.com/) (Free, reliable ZPL rendering engine).
-- **Icons**: Open-source [Ionicons](https://ionic.io/ionicons).
+Example:
 
-## 🚀 Getting Started
+```bash
+python3 -m http.server 8000
+```
 
-Because there is no backend server required, this app is incredibly easy to run or host anywhere for free (e.g., GitHub Pages, Vercel, Netlify).
+Then open `http://localhost:8000`.
 
-### Run Locally
+## Notes
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yakupbulbul/zpl-web-app.git
-   cd zpl-web-app
-   ```
-2. **Start a local server:**
-   You can serve the directory using Python's built-in HTTP server:
-   ```bash
-   python3 -m http.server 8000
-   ```
-3. **Open the App:** Navigate to `http://localhost:8000` in any modern web browser.
-
-## 🤝 Contributing
-
-Contributions are always welcome! Whether it's a new language translation, a bug fix, or a UI enhancement, feel free to fork the repository and submit a Pull Request.
-
-## 🙏 Acknowledgments
-
-A massive thank you to the open-source projects that made this possible:
-- [Labelary](http://labelary.com/) for their incredible rendering engine.
-- [Ionicons](https://ionic.io/ionicons) for beautiful iconography.
-
----
-<div align="center">
-  <i>Built with ❤️ for the open-source community by Yakup.</i>
-</div>
+- No backend, database, or authentication is required.
+- Theme preference, language preference, and ZPL history are stored locally in the browser.
+- PDF processing is fully client-side.

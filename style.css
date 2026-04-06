@@ -1068,3 +1068,24 @@ input[type="number"]:focus {
     display: flex;
     justify-content: flex-start;
 }
+
+.pdf-output-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pdf-output-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+}
+
+.pdf-output-name {
+    font-weight: 600;
+}

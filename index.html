@@ -251,37 +251,38 @@
                 <p class="action-feedback hidden" id="pdf-organizer-feedback"></p>
             </section>
 
-            <section class="glass-panel pdf-placeholder-panel">
+            <section class="glass-panel pdf-tool-section">
                 <div class="section-heading">
-                    <h2 data-i18n="pdf_tools_title">PDF Tools</h2>
-                    <p data-i18n="pdf_tools_subtitle">Browser-based PDF utilities will live here alongside the existing ZPL workflow.</p>
+                    <h2 data-i18n="pdf_split_heading">PDF Split</h2>
+                    <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
                 </div>
-                <div class="pdf-tool-grid">
-                    <article class="pdf-tool-card">
-                        <div class="pdf-tool-card-icon">
-                            <ion-icon name="git-merge-outline"></ion-icon>
+                <input type="file" id="pdf-split-input" accept="application/pdf,.pdf">
+                <div class="settings">
+                    <div class="setting-group">
+                        <label for="pdf-split-mode" data-i18n="pdf_split_mode_label">Split Mode</label>
+                        <div class="select-wrapper">
+                            <select id="pdf-split-mode">
+                                <option value="selected" data-i18n="pdf_split_mode_selected">Extract Selected Pages</option>
+                                <option value="every" data-i18n="pdf_split_mode_every">Split Every Page</option>
+                                <option value="ranges" data-i18n="pdf_split_mode_ranges">Split by Page Ranges</option>
+                            </select>
+                            <ion-icon name="chevron-down-outline"></ion-icon>
                         </div>
-                        <h3 data-i18n="pdf_tool_merge_title">PDF Merge</h3>
-                        <p data-i18n="pdf_tool_merge_desc">Combine multiple PDF files in the browser without leaving the app.</p>
-                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
-                    </article>
-                    <article class="pdf-tool-card">
-                        <div class="pdf-tool-card-icon">
-                            <ion-icon name="layers-outline"></ion-icon>
-                        </div>
-                        <h3 data-i18n="pdf_tool_organize_title">PDF Page Organizer</h3>
-                        <p data-i18n="pdf_tool_organize_desc">Reorder, remove, and rotate pages with a lightweight browser UI.</p>
-                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
-                    </article>
-                    <article class="pdf-tool-card">
-                        <div class="pdf-tool-card-icon">
-                            <ion-icon name="cut-outline"></ion-icon>
-                        </div>
-                        <h3 data-i18n="pdf_tool_split_title">PDF Split</h3>
-                        <p data-i18n="pdf_tool_split_desc">Extract page ranges or split documents into separate files on the client.</p>
-                        <span class="placeholder-badge" data-i18n="pdf_tool_coming_soon">Coming soon</span>
-                    </article>
+                    </div>
+                    <div class="setting-group">
+                        <label for="pdf-split-ranges" data-i18n="pdf_split_input_label">Pages / Ranges</label>
+                        <input type="text" id="pdf-split-ranges" placeholder="1,3,5 or 1-3,4-6">
+                    </div>
                 </div>
+                <div class="pdf-tool-actions">
+                    <button class="btn btn-primary" id="pdf-split-run-btn">
+                        <ion-icon name="cut-outline"></ion-icon>
+                        <span data-i18n="pdf_split_run">Generate Split PDFs</span>
+                    </button>
+                </div>
+                <div class="pdf-output-list" id="pdf-split-output-list"></div>
+                <p class="pdf-tool-empty" id="pdf-split-empty" data-i18n="pdf_split_empty">Upload a PDF and choose how to split it.</p>
+                <p class="action-feedback hidden" id="pdf-split-feedback"></p>
             </section>
         </section>
     </main>

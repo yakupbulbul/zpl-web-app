@@ -42,6 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
             "pdf_organizer_subtitle": "Upload one PDF, then remove, reorder, or rotate its pages before exporting.",
             "pdf_organizer_empty": "Upload a PDF to start organizing pages.",
             "pdf_organizer_export": "Export Updated PDF",
+            "pdf_split_heading": "PDF Split",
+            "pdf_split_subtitle": "Extract selected pages, split every page, or generate PDFs from page ranges.",
+            "pdf_split_mode_label": "Split Mode",
+            "pdf_split_mode_selected": "Extract Selected Pages",
+            "pdf_split_mode_every": "Split Every Page",
+            "pdf_split_mode_ranges": "Split by Page Ranges",
+            "pdf_split_input_label": "Pages / Ranges",
+            "pdf_split_run": "Generate Split PDFs",
+            "pdf_split_empty": "Upload a PDF and choose how to split it.",
             "pdf_tool_merge_title": "PDF Merge",
             "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
             "pdf_tool_organize_title": "PDF Page Organizer",
@@ -212,6 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
         pdfOrganizerExportBtn: document.getElementById('pdf-organizer-export-btn'),
         pdfOrganizerFeedback: document.getElementById('pdf-organizer-feedback'),
+        pdfSplitInput: document.getElementById('pdf-split-input'),
+        pdfSplitMode: document.getElementById('pdf-split-mode'),
+        pdfSplitRanges: document.getElementById('pdf-split-ranges'),
+        pdfSplitRunBtn: document.getElementById('pdf-split-run-btn'),
+        pdfSplitOutputList: document.getElementById('pdf-split-output-list'),
+        pdfSplitEmpty: document.getElementById('pdf-split-empty'),
+        pdfSplitFeedback: document.getElementById('pdf-split-feedback'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -233,7 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lastRenderSettings: null,
         pdfMergeFiles: [],
         pdfOrganizerSourceBytes: null,
-        pdfOrganizerPages: []
+        pdfOrganizerPages: [],
+        pdfSplitSourceBytes: null,
+        pdfSplitPageCount: 0,
+        pdfSplitOutputs: []
     };
 
     const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
@@ -258,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSharedState();
     initializePdfMerge();
     initializePdfOrganizer();
+    initializePdfSplit();
     updateConvertButtonState();
 
     function initializeTheme() {
@@ -484,6 +504,181 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestId = ++state.renderRequestSequence;
         state.latestRenderRequest = requestId;
         await renderZplToPng(zplData, settings, requestId, options);
+    }
+
+    function initializePdfSplit() {
+        elements.pdfSplitInput.addEventListener('change', async (event) => {
+            const [file] = Array.from(event.target.files || []);
+            if (!file) {
+                return;
+            }
+
+            await loadSplitFile(file);
+        });
+
+        elements.pdfSplitRunBtn.addEventListener('click', async () => {
+            await runPdfSplit();
+        });
+
+        renderPdfSplitOutputs();
+    }
+
+    async function loadSplitFile(file) {
+        try {
+            clearPdfSplitOutputs();
+            state.pdfSplitSourceBytes = await file.arrayBuffer();
+            const { PDFDocument } = window.PDFLib;
+            const document = await PDFDocument.load(state.pdfSplitSourceBytes);
+            state.pdfSplitPageCount = document.getPageCount();
+            hidePdfSplitFeedback();
+            renderPdfSplitOutputs();
+        } catch (error) {
+            console.error('PDF split load error:', error);
+            showPdfSplitFeedback(`Failed to read PDF. (${error.message})`, true);
+        }
+    }
+
+    async function runPdfSplit() {
+        if (!state.pdfSplitSourceBytes || !state.pdfSplitPageCount) {
+            showPdfSplitFeedback('Upload a PDF before splitting.', true);
+            return;
+        }
+
+        try {
+            clearPdfSplitOutputs();
+            const mode = elements.pdfSplitMode.value;
+            const sourceDocument = await window.PDFLib.PDFDocument.load(state.pdfSplitSourceBytes);
+
+            if (mode === 'every') {
+                for (let pageIndex = 0; pageIndex < state.pdfSplitPageCount; pageIndex += 1) {
+                    const bytes = await buildPdfFromPageIndices(sourceDocument, [pageIndex]);
+                    addPdfSplitOutput(`page-${pageIndex + 1}.pdf`, bytes);
+                }
+            } else if (mode === 'selected') {
+                const selectedPages = parsePageListInput(elements.pdfSplitRanges.value, state.pdfSplitPageCount);
+                const bytes = await buildPdfFromPageIndices(sourceDocument, selectedPages);
+                addPdfSplitOutput('selected-pages.pdf', bytes);
+            } else {
+                const ranges = parsePageRangeInput(elements.pdfSplitRanges.value, state.pdfSplitPageCount);
+                for (const range of ranges) {
+                    const bytes = await buildPdfFromPageIndices(sourceDocument, range.indices);
+                    addPdfSplitOutput(`pages-${range.label}.pdf`, bytes);
+                }
+            }
+
+            renderPdfSplitOutputs();
+            hidePdfSplitFeedback();
+        } catch (error) {
+            console.error('PDF split error:', error);
+            showPdfSplitFeedback(error.message || 'Failed to split PDF.', true);
+        }
+    }
+
+    async function buildPdfFromPageIndices(sourceDocument, pageIndices) {
+        const outputDocument = await window.PDFLib.PDFDocument.create();
+        const copiedPages = await outputDocument.copyPages(sourceDocument, pageIndices);
+        copiedPages.forEach((page) => outputDocument.addPage(page));
+        return outputDocument.save();
+    }
+
+    function parsePageListInput(value, pageCount) {
+        const tokens = value.split(',').map((token) => token.trim()).filter(Boolean);
+        if (!tokens.length) {
+            throw new Error('Enter one or more page numbers.');
+        }
+
+        const seen = new Set();
+        const pages = [];
+
+        tokens.forEach((token) => {
+            if (!/^\d+$/.test(token)) {
+                throw new Error('Selected pages must be comma-separated page numbers.');
+            }
+
+            const pageNumber = Number(token);
+            if (pageNumber < 1 || pageNumber > pageCount) {
+                throw new Error('Selected page is outside the document range.');
+            }
+
+            if (!seen.has(pageNumber)) {
+                seen.add(pageNumber);
+                pages.push(pageNumber - 1);
+            }
+        });
+
+        return pages;
+    }
+
+    function parsePageRangeInput(value, pageCount) {
+        const tokens = value.split(',').map((token) => token.trim()).filter(Boolean);
+        if (!tokens.length) {
+            throw new Error('Enter one or more page ranges such as 1-3,4-6.');
+        }
+
+        return tokens.map((token) => {
+            const match = token.match(/^(\d+)-(\d+)$/);
+            if (!match) {
+                throw new Error('Ranges must use start-end format, for example 1-3.');
+            }
+
+            const start = Number(match[1]);
+            const end = Number(match[2]);
+            if (start < 1 || end < start || end > pageCount) {
+                throw new Error('A page range is outside the document bounds.');
+            }
+
+            return {
+                label: `${start}-${end}`,
+                indices: Array.from({ length: end - start + 1 }, (_, index) => start - 1 + index)
+            };
+        });
+    }
+
+    function addPdfSplitOutput(name, bytes) {
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        state.pdfSplitOutputs.push({
+            name,
+            url: URL.createObjectURL(blob)
+        });
+    }
+
+    function clearPdfSplitOutputs() {
+        state.pdfSplitOutputs.forEach((output) => URL.revokeObjectURL(output.url));
+        state.pdfSplitOutputs = [];
+    }
+
+    function renderPdfSplitOutputs() {
+        elements.pdfSplitOutputList.innerHTML = '';
+
+        if (!state.pdfSplitOutputs.length) {
+            elements.pdfSplitEmpty.classList.remove('hidden');
+            return;
+        }
+
+        elements.pdfSplitEmpty.classList.add('hidden');
+
+        state.pdfSplitOutputs.forEach((output) => {
+            const row = document.createElement('div');
+            row.className = 'pdf-output-row';
+            row.innerHTML = `
+                <span class="pdf-output-name">${escapeHtml(output.name)}</span>
+                <button class="btn btn-outline">Download</button>
+            `;
+            row.querySelector('button').addEventListener('click', () => downloadBlobUrl(output.url, output.name));
+            elements.pdfSplitOutputList.appendChild(row);
+        });
+    }
+
+    function showPdfSplitFeedback(message, isError = false) {
+        elements.pdfSplitFeedback.textContent = message;
+        elements.pdfSplitFeedback.classList.remove('hidden');
+        elements.pdfSplitFeedback.classList.toggle('is-error', isError);
+    }
+
+    function hidePdfSplitFeedback() {
+        elements.pdfSplitFeedback.textContent = '';
+        elements.pdfSplitFeedback.classList.add('hidden');
+        elements.pdfSplitFeedback.classList.remove('is-error');
     }
 
     function initializePdfOrganizer() {
