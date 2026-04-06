@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Translations ---
     const translations = {
         en: {
             "badge_free": "100% Free Tool",
@@ -141,280 +140,313 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // DOM Elements
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    // Upload Elements
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const browseBtn = document.getElementById('browse-btn');
-    const fileInfo = document.getElementById('file-info');
-    const fileNameDisplay = document.getElementById('file-name');
-    const removeFileBtn = document.getElementById('remove-file-btn');
-    
-    // Paste Elements
-    const zplInput = document.getElementById('zpl-input');
-    const clearBtn = document.getElementById('clear-btn');
-    
-    // Settings & Action Elements
-    const densitySelect = document.getElementById('density');
-    const widthInput = document.getElementById('width');
-    const heightInput = document.getElementById('height');
-    const convertBtn = document.getElementById('convert-btn');
-    const loader = document.getElementById('loader');
-    
-    // Result Elements
-    const resultSection = document.getElementById('result-section');
-    const imagePreview = document.getElementById('image-preview');
-    const downloadBtn = document.getElementById('download-btn');
-    const newConvertBtn = document.getElementById('new-convert-btn');
-    const closeResultBtn = document.getElementById('close-result-btn');
+    const elements = {
+        tabs: document.querySelectorAll('.tab'),
+        tabContents: document.querySelectorAll('.tab-content'),
+        dropZone: document.getElementById('drop-zone'),
+        fileInput: document.getElementById('file-input'),
+        browseBtn: document.getElementById('browse-btn'),
+        fileInfo: document.getElementById('file-info'),
+        fileNameDisplay: document.getElementById('file-name'),
+        removeFileBtn: document.getElementById('remove-file-btn'),
+        zplInput: document.getElementById('zpl-input'),
+        clearBtn: document.getElementById('clear-btn'),
+        densitySelect: document.getElementById('density'),
+        widthInput: document.getElementById('width'),
+        heightInput: document.getElementById('height'),
+        convertBtn: document.getElementById('convert-btn'),
+        loader: document.getElementById('loader'),
+        resultSection: document.getElementById('result-section'),
+        imagePreview: document.getElementById('image-preview'),
+        downloadBtn: document.getElementById('download-btn'),
+        newConvertBtn: document.getElementById('new-convert-btn'),
+        closeResultBtn: document.getElementById('close-result-btn'),
+        themeBtn: document.getElementById('theme-btn'),
+        themeIcon: document.getElementById('theme-icon'),
+        langBtn: document.getElementById('lang-btn')
+    };
 
-    // State
-    let currentMode = 'upload'; // 'upload' or 'paste'
-    let selectedFile = null;
-    let generatedBlobUrl = null;
+    const state = {
+        currentMode: 'upload',
+        selectedFile: null,
+        generatedBlobUrl: null
+    };
 
-    // --- Theme Logic ---
-    const themeBtn = document.getElementById('theme-btn');
-    const themeIcon = document.getElementById('theme-icon');
-    
-    const getPreferredTheme = () => {
+    initializeTheme();
+    initializeLanguage();
+    initializeTabs();
+    initializeUpload();
+    initializePaste();
+    initializeActions();
+    updateConvertButtonState();
+
+    function initializeTheme() {
+        setTheme(getPreferredTheme());
+
+        if (elements.themeBtn) {
+            elements.themeBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+        }
+    }
+
+    function getPreferredTheme() {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             return savedTheme;
         }
+
         return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    };
-    
-    const setTheme = (theme) => {
+    }
+
+    function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        if (themeIcon) {
-            themeIcon.name = theme === 'light' ? 'moon-outline' : 'sunny-outline';
+
+        if (elements.themeIcon) {
+            elements.themeIcon.name = theme === 'light' ? 'moon-outline' : 'sunny-outline';
         }
-    };
-    
-    // Initialize theme
-    setTheme(getPreferredTheme());
-    
-        if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
     }
 
-    // --- Language Logic ---
-    const langBtn = document.getElementById('lang-btn');
-    
-    const setLanguage = (lang) => {
-        if (!translations[lang]) lang = 'en';
-        localStorage.setItem('lang', lang);
-        document.documentElement.lang = lang;
-        if (langBtn) langBtn.value = lang;
-        
-        document.querySelectorAll('[data-i18n]').forEach(element => {
+    function initializeLanguage() {
+        const savedLang = localStorage.getItem('lang') || 'en';
+        setLanguage(savedLang);
+
+        if (elements.langBtn) {
+            elements.langBtn.addEventListener('change', (event) => setLanguage(event.target.value));
+        }
+    }
+
+    function setLanguage(lang) {
+        const normalizedLang = translations[lang] ? lang : 'en';
+        localStorage.setItem('lang', normalizedLang);
+        document.documentElement.lang = normalizedLang;
+
+        if (elements.langBtn) {
+            elements.langBtn.value = normalizedLang;
+        }
+
+        document.querySelectorAll('[data-i18n]').forEach((element) => {
             const key = element.getAttribute('data-i18n');
-            if (translations[lang][key]) {
-                element.innerHTML = translations[lang][key];
+            const translation = translations[normalizedLang][key];
+
+            if (translation) {
+                element.innerHTML = translation;
             }
         });
-    };
-    
-    const savedLang = localStorage.getItem('lang') || 'en';
-    setLanguage(savedLang);
-    
-    if (langBtn) {
-        langBtn.addEventListener('change', (e) => setLanguage(e.target.value));
     }
 
-    // --- Tab Switching ---
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            currentMode = target;
-            
-            // Update Tab UI
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Update Content UI
-            tabContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(`${target}-tab`).classList.add('active');
-            
-            updateConvertButtonState();
+    function initializeTabs() {
+        elements.tabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                switchInputTab(tab.dataset.tab);
+            });
         });
-    });
+    }
 
-    // --- File Upload Logic ---
-    browseBtn.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
+    function switchInputTab(targetTab) {
+        state.currentMode = targetTab;
 
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
+        elements.tabs.forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.tab === targetTab);
+        });
 
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
+        elements.tabContents.forEach((content) => {
+            content.classList.toggle('active', content.id === `${targetTab}-tab`);
+        });
 
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) {
-            handleFile(e.dataTransfer.files[0]);
-        }
-    });
-
-    removeFileBtn.addEventListener('click', () => {
-        selectedFile = null;
-        fileInput.value = '';
-        dropZone.classList.remove('hidden');
-        fileInfo.classList.add('hidden');
         updateConvertButtonState();
-    });
+    }
+
+    function initializeUpload() {
+        elements.browseBtn.addEventListener('click', () => elements.fileInput.click());
+
+        elements.fileInput.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                handleFile(event.target.files[0]);
+            }
+        });
+
+        elements.dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            elements.dropZone.classList.add('dragover');
+        });
+
+        elements.dropZone.addEventListener('dragleave', () => {
+            elements.dropZone.classList.remove('dragover');
+        });
+
+        elements.dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            elements.dropZone.classList.remove('dragover');
+
+            if (event.dataTransfer.files.length > 0) {
+                handleFile(event.dataTransfer.files[0]);
+            }
+        });
+
+        elements.removeFileBtn.addEventListener('click', clearSelectedFile);
+    }
 
     function handleFile(file) {
-        // Validate basic file type
-        selectedFile = file;
-        fileNameDisplay.textContent = file.name;
-        dropZone.classList.add('hidden');
-        fileInfo.classList.remove('hidden');
+        state.selectedFile = file;
+        elements.fileNameDisplay.textContent = file.name;
+        elements.dropZone.classList.add('hidden');
+        elements.fileInfo.classList.remove('hidden');
         updateConvertButtonState();
     }
 
-    // --- Paste Logic ---
-    zplInput.addEventListener('input', updateConvertButtonState);
-    
-    clearBtn.addEventListener('click', () => {
-        zplInput.value = '';
+    function clearSelectedFile() {
+        state.selectedFile = null;
+        elements.fileInput.value = '';
+        elements.dropZone.classList.remove('hidden');
+        elements.fileInfo.classList.add('hidden');
         updateConvertButtonState();
-    });
-
-    // --- Validation ---
-    function updateConvertButtonState() {
-        if (currentMode === 'upload') {
-            convertBtn.disabled = !selectedFile;
-            convertBtn.style.opacity = !selectedFile ? '0.5' : '1';
-            convertBtn.style.cursor = !selectedFile ? 'not-allowed' : 'pointer';
-        } else {
-            const hasText = zplInput.value.trim().length > 0;
-            convertBtn.disabled = !hasText;
-            convertBtn.style.opacity = !hasText ? '0.5' : '1';
-            convertBtn.style.cursor = !hasText ? 'not-allowed' : 'pointer';
-        }
     }
 
-    // Initial check
-    updateConvertButtonState();
+    function initializePaste() {
+        elements.zplInput.addEventListener('input', updateConvertButtonState);
 
-    // --- Conversion Logic ---
-    convertBtn.addEventListener('click', async () => {
-        let zplData = '';
-        
-        if (currentMode === 'upload' && selectedFile) {
-            try {
-                zplData = await selectedFile.text();
-            } catch (err) {
-                alert('Error reading the ZPL file.');
+        elements.clearBtn.addEventListener('click', () => {
+            elements.zplInput.value = '';
+            updateConvertButtonState();
+        });
+    }
+
+    function initializeActions() {
+        elements.convertBtn.addEventListener('click', async () => {
+            const zplData = await getCurrentZplData();
+            if (!zplData) {
                 return;
             }
-        } else if (currentMode === 'paste') {
-            zplData = zplInput.value.trim();
+
+            const settings = getRenderSettings();
+            await renderZplToPng(zplData, settings);
+        });
+
+        elements.downloadBtn.addEventListener('click', () => {
+            downloadBlobUrl(state.generatedBlobUrl, 'label.png');
+        });
+
+        elements.newConvertBtn.addEventListener('click', resetView);
+        elements.closeResultBtn.addEventListener('click', resetView);
+    }
+
+    function updateConvertButtonState() {
+        const isEnabled = state.currentMode === 'upload'
+            ? Boolean(state.selectedFile)
+            : elements.zplInput.value.trim().length > 0;
+
+        elements.convertBtn.disabled = !isEnabled;
+        elements.convertBtn.style.opacity = isEnabled ? '1' : '0.5';
+        elements.convertBtn.style.cursor = isEnabled ? 'pointer' : 'not-allowed';
+    }
+
+    async function getCurrentZplData() {
+        if (state.currentMode === 'upload') {
+            return getFileZplData();
         }
 
-        if (!zplData) return;
+        return elements.zplInput.value.trim();
+    }
 
-        // Settings
-        const density = densitySelect.value;
-        const width = widthInput.value || 4;
-        const height = heightInput.value || 6;
-        
-        const url = `https://api.labelary.com/v1/printers/${density}dpmm/labels/${width}x${height}/0/`;
-        
+    async function getFileZplData() {
+        if (!state.selectedFile) {
+            return '';
+        }
+
+        try {
+            return await state.selectedFile.text();
+        } catch (error) {
+            alert('Error reading the ZPL file.');
+            return '';
+        }
+    }
+
+    function getRenderSettings() {
+        return {
+            density: elements.densitySelect.value,
+            width: elements.widthInput.value || 4,
+            height: elements.heightInput.value || 6
+        };
+    }
+
+    async function renderZplToPng(zplData, settings) {
         setLoadingState(true);
 
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'image/png',
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: zplData
-            });
-
-            if (!response.ok) {
-                throw new Error(`API returned status: ${response.status}`);
-            }
-
-            const blob = await response.blob();
-            
-            // Cleanup previous blob URL if exists
-            if (generatedBlobUrl) {
-                URL.revokeObjectURL(generatedBlobUrl);
-            }
-            
-            generatedBlobUrl = URL.createObjectURL(blob);
-            displayResult(generatedBlobUrl);
-            
+            const blob = await fetchLabelImage(zplData, settings);
+            const blobUrl = createBlobUrl(blob);
+            displayResult(blobUrl);
         } catch (error) {
             console.error('Conversion error:', error);
             alert(`Failed to convert ZPL. Please check your code or try again. (${error.message})`);
         } finally {
             setLoadingState(false);
         }
-    });
+    }
+
+    async function fetchLabelImage(zplData, settings) {
+        const url = `https://api.labelary.com/v1/printers/${settings.density}dpmm/labels/${settings.width}x${settings.height}/0/`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'image/png',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: zplData
+        });
+
+        if (!response.ok) {
+            throw new Error(`API returned status: ${response.status}`);
+        }
+
+        return response.blob();
+    }
+
+    function createBlobUrl(blob) {
+        if (state.generatedBlobUrl) {
+            URL.revokeObjectURL(state.generatedBlobUrl);
+        }
+
+        state.generatedBlobUrl = URL.createObjectURL(blob);
+        return state.generatedBlobUrl;
+    }
 
     function setLoadingState(isLoading) {
+        elements.convertBtn.classList.toggle('hidden', isLoading);
+        elements.loader.classList.toggle('hidden', !isLoading);
+
         if (isLoading) {
-            convertBtn.classList.add('hidden');
-            loader.classList.remove('hidden');
-            resultSection.classList.add('hidden');
-        } else {
-            convertBtn.classList.remove('hidden');
-            loader.classList.add('hidden');
+            elements.resultSection.classList.add('hidden');
         }
     }
 
-    function displayResult(imgUrl) {
-        // Build image tag
-        imagePreview.innerHTML = `<img src="${imgUrl}" alt="Generated Shipping Label">`;
-        
-        // Show result section with animation
-        resultSection.classList.remove('hidden');
-        
-        // Scroll to results smoothly
+    function displayResult(imageUrl) {
+        elements.imagePreview.innerHTML = `<img src="${imageUrl}" alt="Generated Shipping Label">`;
+        elements.resultSection.classList.remove('hidden');
+
         setTimeout(() => {
-            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            elements.resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     }
 
-    // --- Action Logic ---
-    downloadBtn.addEventListener('click', () => {
-        if (generatedBlobUrl) {
-            const a = document.createElement('a');
-            a.href = generatedBlobUrl;
-            a.download = 'label.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+    function downloadBlobUrl(blobUrl, filename) {
+        if (!blobUrl) {
+            return;
         }
-    });
 
-    newConvertBtn.addEventListener('click', resetView);
-    closeResultBtn.addEventListener('click', resetView);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
     function resetView() {
-        resultSection.classList.add('hidden');
+        elements.resultSection.classList.add('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 });
