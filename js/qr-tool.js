@@ -2,7 +2,8 @@ window.ZplWebApp = window.ZplWebApp || {};
 
 window.ZplWebApp.createQrTool = function createQrTool({
     elements,
-    translations
+    translations,
+    downloadBlobUrl
 }) {
     const featureState = {
         pngDataUrl: '',
@@ -24,6 +25,8 @@ window.ZplWebApp.createQrTool = function createQrTool({
         elements.qrMarginInput.addEventListener('input', updatePreview);
         elements.qrErrorLevelSelect.addEventListener('change', updatePreview);
         elements.qrResetBtn.addEventListener('click', resetForm);
+        elements.qrDownloadPngBtn.addEventListener('click', downloadPng);
+        elements.qrDownloadSvgBtn.addEventListener('click', downloadSvg);
     }
 
     async function updatePreview() {
@@ -133,6 +136,28 @@ window.ZplWebApp.createQrTool = function createQrTool({
         elements.qrDownloadSvgBtn.disabled = !hasResult;
     }
 
+    function downloadPng() {
+        if (!featureState.pngDataUrl) {
+            showFeedback(getMessage('qr_export_missing'), true);
+            return;
+        }
+
+        downloadBlobUrl(featureState.pngDataUrl, 'qr-code.png');
+        showFeedback(getMessage('qr_png_downloaded'));
+    }
+
+    function downloadSvg() {
+        if (!featureState.svgMarkup) {
+            showFeedback(getMessage('qr_export_missing'), true);
+            return;
+        }
+
+        const svgBlobUrl = URL.createObjectURL(new Blob([featureState.svgMarkup], { type: 'image/svg+xml' }));
+        downloadBlobUrl(svgBlobUrl, 'qr-code.svg');
+        setTimeout(() => URL.revokeObjectURL(svgBlobUrl), 1000);
+        showFeedback(getMessage('qr_svg_downloaded'));
+    }
+
     function resetGeneratedState() {
         featureState.pngDataUrl = '';
         featureState.svgMarkup = '';
@@ -149,7 +174,8 @@ window.ZplWebApp.createQrTool = function createQrTool({
     }
 
     function getMessage(key) {
-        return (translations.en && translations.en[key]) || key;
+        const currentLang = document.documentElement.lang;
+        return (translations[currentLang] && translations[currentLang][key]) || (translations.en && translations.en[key]) || key;
     }
 
     return {
