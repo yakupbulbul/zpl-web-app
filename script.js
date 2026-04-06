@@ -10,12 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const PDF_WORKER_SRC = config.PDF_WORKER_SRC || '';
     const labelPresets = config.labelPresets || {};
     const { cloneArrayBuffer, escapeHtml, toggleHidden } = shared;
+    const persistence = (app.createPersistence || (() => null))({
+        historyStorageKey: HISTORY_STORAGE_KEY,
+        historyLimit: HISTORY_LIMIT,
+        storage: window.localStorage,
+        location: window.location,
+        lzString: window.LZString
+    });
     const zplTool = (app.createZplTool || (() => null))({
         elements,
         state,
         translations,
         labelPresets,
         saveHistoryEntry,
+        buildShareUrl: persistence ? persistence.buildShareUrl : null,
         downloadBlobUrl
     });
     const pdfTools = (app.createPdfTools || (() => null))({
@@ -120,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeSharedState() {
-        const sharedState = parseSharedState();
+        const sharedState = persistence ? persistence.parseSharedState() : null;
         if (!sharedState) {
             return;
         }
@@ -128,94 +136,22 @@ document.addEventListener('DOMContentLoaded', () => {
         zplTool.restoreSession(sharedState);
     }
 
-    function parseSharedState() {
-        if (!window.location.hash.startsWith('#zpl=')) {
-            return null;
-        }
-
-        if (!window.LZString) {
-            return null;
-        }
-
-        try {
-            const compressed = window.location.hash.slice(5);
-            const decompressed = window.LZString.decompressFromEncodedURIComponent(compressed);
-            if (!decompressed) {
-                return null;
-            }
-
-            const payload = JSON.parse(decompressed);
-            if (!payload || typeof payload.zpl !== 'string') {
-                return null;
-            }
-
-            return {
-                zpl: payload.zpl,
-                width: typeof payload.width === 'string' ? payload.width : '4',
-                height: typeof payload.height === 'string' ? payload.height : '6',
-                density: typeof payload.density === 'string' ? payload.density : '8'
-            };
-        } catch (error) {
-            console.error('Share state parse error:', error);
-            return null;
-        }
-    }
-
     function initializeHistory() {
-        state.conversionHistory = loadHistoryEntries();
+        state.conversionHistory = persistence ? persistence.loadHistoryEntries() : [];
         renderHistoryList();
 
         elements.clearHistoryBtn.addEventListener('click', () => {
-            state.conversionHistory = [];
-            localStorage.removeItem(HISTORY_STORAGE_KEY);
+            state.conversionHistory = persistence ? persistence.clearHistory() : [];
             renderHistoryList();
         });
     }
 
-    function loadHistoryEntries() {
-        try {
-            const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-            if (!raw) {
-                return [];
-            }
-
-            const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) {
-                return [];
-            }
-
-            return parsed.filter(isValidHistoryEntry).slice(0, HISTORY_LIMIT);
-        } catch (error) {
-            console.error('History parse error:', error);
-            return [];
-        }
-    }
-
-    function isValidHistoryEntry(entry) {
-        return Boolean(
-            entry &&
-            typeof entry.timestamp === 'number' &&
-            typeof entry.width === 'string' &&
-            typeof entry.height === 'string' &&
-            typeof entry.density === 'string' &&
-            typeof entry.snippet === 'string' &&
-            typeof entry.zpl === 'string' &&
-            entry.zpl.trim()
-        );
-    }
-
     function saveHistoryEntry(zplData, settings) {
-        const entry = {
-            timestamp: Date.now(),
-            width: String(settings.width),
-            height: String(settings.height),
-            density: String(settings.density),
-            snippet: zplData.replace(/\s+/g, ' ').trim().slice(0, 90),
-            zpl: zplData
-        };
+        if (!persistence) {
+            return;
+        }
 
-        state.conversionHistory = [entry, ...state.conversionHistory.filter((item) => item.zpl !== entry.zpl)].slice(0, HISTORY_LIMIT);
-        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(state.conversionHistory));
+        state.conversionHistory = persistence.saveHistoryEntry(state.conversionHistory, zplData, settings);
         renderHistoryList();
     }
 
@@ -230,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.historyEmpty.classList.add('hidden');
 
         state.conversionHistory.forEach((entry, index) => {
-            if (!isValidHistoryEntry(entry)) {
+            if (!persistence || !persistence.isValidHistoryEntry(entry)) {
                 return;
             }
 
@@ -251,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function restoreHistoryEntry(index) {
         const entry = state.conversionHistory[index];
-        if (!isValidHistoryEntry(entry)) {
+        if (!persistence || !persistence.isValidHistoryEntry(entry)) {
             return;
         }
 

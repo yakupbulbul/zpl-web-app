@@ -6,6 +6,7 @@ window.ZplWebApp.createZplTool = function createZplTool({
     translations,
     labelPresets,
     saveHistoryEntry,
+    buildShareUrl,
     downloadBlobUrl
 }) {
     function init() {
@@ -300,20 +301,17 @@ window.ZplWebApp.createZplTool = function createZplTool({
     }
 
     async function copyShareLink() {
-        if (!state.lastRenderedZpl || !state.lastRenderSettings || !window.LZString) {
+        const shareUrl = buildShareUrl({
+            zpl: state.lastRenderedZpl,
+            settings: state.lastRenderSettings
+        });
+
+        if (!shareUrl) {
             showFeedback(translations.en.share_link_failed, true);
             return;
         }
 
         try {
-            const payload = {
-                zpl: state.lastRenderedZpl,
-                width: String(state.lastRenderSettings.width),
-                height: String(state.lastRenderSettings.height),
-                density: String(state.lastRenderSettings.density)
-            };
-            const encoded = window.LZString.compressToEncodedURIComponent(JSON.stringify(payload));
-            const shareUrl = `${window.location.origin}${window.location.pathname}#zpl=${encoded}`;
             await navigator.clipboard.writeText(shareUrl);
             showFeedback(translations.en.share_link_ready);
         } catch (error) {
