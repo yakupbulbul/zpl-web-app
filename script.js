@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "pdf_split_input_label": "Pages / Ranges",
             "pdf_split_run": "Generate Split PDFs",
             "pdf_split_empty": "Upload a PDF and choose how to split it.",
+            "pdf_preview_label": "Preview",
+            "pdf_preview_hint": "Upload a PDF and select a page to preview it here.",
+            "pdf_preview_empty": "Preview will appear here when a page is available.",
+            "pdf_split_preview_hint": "Upload a PDF to inspect pages before splitting.",
             "pdf_tool_merge_title": "PDF Merge",
             "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
             "pdf_tool_organize_title": "PDF Page Organizer",
@@ -221,6 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
         pdfOrganizerExportBtn: document.getElementById('pdf-organizer-export-btn'),
         pdfOrganizerFeedback: document.getElementById('pdf-organizer-feedback'),
+        pdfOrganizerPreviewMeta: document.getElementById('pdf-organizer-preview-meta'),
+        pdfOrganizerPreviewEmpty: document.getElementById('pdf-organizer-preview-empty'),
+        pdfOrganizerPreviewCanvas: document.getElementById('pdf-organizer-preview-canvas'),
         pdfSplitInput: document.getElementById('pdf-split-input'),
         pdfSplitMode: document.getElementById('pdf-split-mode'),
         pdfSplitRanges: document.getElementById('pdf-split-ranges'),
@@ -228,6 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfSplitOutputList: document.getElementById('pdf-split-output-list'),
         pdfSplitEmpty: document.getElementById('pdf-split-empty'),
         pdfSplitFeedback: document.getElementById('pdf-split-feedback'),
+        pdfSplitPreviewMeta: document.getElementById('pdf-split-preview-meta'),
+        pdfSplitPreviewEmpty: document.getElementById('pdf-split-preview-empty'),
+        pdfSplitPreviewCanvas: document.getElementById('pdf-split-preview-canvas'),
+        pdfSplitPageGrid: document.getElementById('pdf-split-page-grid'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -250,13 +261,25 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfMergeFiles: [],
         pdfOrganizerSourceBytes: null,
         pdfOrganizerPages: [],
+        pdfOrganizerPreviewDocument: null,
+        pdfOrganizerActiveIndex: 0,
+        pdfOrganizerPreviewSequence: 0,
         pdfSplitSourceBytes: null,
         pdfSplitPageCount: 0,
-        pdfSplitOutputs: []
+        pdfSplitOutputs: [],
+        pdfSplitPreviewDocument: null,
+        pdfSplitActivePage: 1,
+        pdfSplitPreviewSequence: 0
     };
 
     const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
     const HISTORY_LIMIT = 10;
+
+    function configurePdfPreviewRuntime() {
+        if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    }
 
     const labelPresets = {
         shipping_4x6: { width: '4', height: '6', density: '8' },
@@ -265,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         metric_100x150: { width: '3.94', height: '5.91', density: '8' }
     };
 
+    configurePdfPreviewRuntime();
     initializeTheme();
     initializeLanguage();
     initializeToolSuite();
@@ -516,11 +540,20 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadSplitFile(file);
         });
 
+        elements.pdfSplitMode.addEventListener('change', () => {
+            renderSplitPreviewState();
+        });
+
+        elements.pdfSplitRanges.addEventListener('input', () => {
+            renderSplitPreviewState();
+        });
+
         elements.pdfSplitRunBtn.addEventListener('click', async () => {
             await runPdfSplit();
         });
 
         renderPdfSplitOutputs();
+        renderSplitPreviewState();
     }
 
     async function loadSplitFile(file) {
@@ -530,8 +563,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const { PDFDocument } = window.PDFLib;
             const document = await PDFDocument.load(state.pdfSplitSourceBytes);
             state.pdfSplitPageCount = document.getPageCount();
+            state.pdfSplitPreviewDocument = await loadPdfPreviewDocument(state.pdfSplitSourceBytes);
+            state.pdfSplitActivePage = 1;
             hidePdfSplitFeedback();
             renderPdfSplitOutputs();
+            renderSplitPreviewState();
         } catch (error) {
             console.error('PDF split load error:', error);
             showPdfSplitFeedback(`Failed to read PDF. (${error.message})`, true);
@@ -567,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderPdfSplitOutputs();
+            renderSplitPreviewState();
             hidePdfSplitFeedback();
         } catch (error) {
             console.error('PDF split error:', error);
@@ -669,6 +706,138 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function renderSplitPreviewState() {
+        renderSplitPageGrid();
+        updateSplitPreview();
+    }
+
+    function renderSplitPageGrid() {
+        elements.pdfSplitPageGrid.innerHTML = '';
+
+        if (!state.pdfSplitPageCount) {
+            return;
+        }
+
+        const highlightedPages = getSplitHighlightedPages();
+
+        for (let pageNumber = 1; pageNumber <= state.pdfSplitPageCount; pageNumber += 1) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'pdf-page-chip';
+            button.textContent = `${pageNumber}`;
+            button.classList.toggle('is-active', pageNumber === state.pdfSplitActivePage);
+            button.classList.toggle('is-selected', highlightedPages.has(pageNumber));
+            button.addEventListener('click', () => {
+                state.pdfSplitActivePage = pageNumber;
+
+                if (elements.pdfSplitMode.value === 'selected') {
+                    toggleSelectedSplitPage(pageNumber);
+                }
+
+                renderSplitPreviewState();
+            });
+            elements.pdfSplitPageGrid.appendChild(button);
+        }
+    }
+
+    function toggleSelectedSplitPage(pageNumber) {
+        const pages = Array.from(getSplitHighlightedPages()).sort((left, right) => left - right);
+        const nextPages = pages.includes(pageNumber)
+            ? pages.filter((value) => value !== pageNumber)
+            : [...pages, pageNumber].sort((left, right) => left - right);
+
+        elements.pdfSplitRanges.value = nextPages.join(',');
+    }
+
+    function getSplitHighlightedPages() {
+        if (!state.pdfSplitPageCount) {
+            return new Set();
+        }
+
+        if (elements.pdfSplitMode.value === 'every') {
+            return new Set(Array.from({ length: state.pdfSplitPageCount }, (_, index) => index + 1));
+        }
+
+        const rawValue = elements.pdfSplitRanges.value.trim();
+        if (!rawValue) {
+            return new Set();
+        }
+
+        if (elements.pdfSplitMode.value === 'selected') {
+            return getSoftSelectedPages(rawValue, state.pdfSplitPageCount);
+        }
+
+        return getSoftRangePages(rawValue, state.pdfSplitPageCount);
+    }
+
+    function getSoftSelectedPages(value, pageCount) {
+        const pages = new Set();
+        value.split(',').map((token) => token.trim()).filter(Boolean).forEach((token) => {
+            if (!/^\d+$/.test(token)) {
+                return;
+            }
+
+            const pageNumber = Number(token);
+            if (pageNumber >= 1 && pageNumber <= pageCount) {
+                pages.add(pageNumber);
+            }
+        });
+        return pages;
+    }
+
+    function getSoftRangePages(value, pageCount) {
+        const pages = new Set();
+        value.split(',').map((token) => token.trim()).filter(Boolean).forEach((token) => {
+            const match = token.match(/^(\d+)-(\d+)$/);
+            if (!match) {
+                return;
+            }
+
+            const start = Number(match[1]);
+            const end = Number(match[2]);
+            if (start < 1 || end < start || end > pageCount) {
+                return;
+            }
+
+            for (let pageNumber = start; pageNumber <= end; pageNumber += 1) {
+                pages.add(pageNumber);
+            }
+        });
+        return pages;
+    }
+
+    async function updateSplitPreview() {
+        if (!state.pdfSplitPreviewDocument || !state.pdfSplitPageCount) {
+            elements.pdfSplitPreviewMeta.textContent = translations.en.pdf_split_preview_hint;
+            elements.pdfSplitPreviewCanvas.classList.add('hidden');
+            elements.pdfSplitPreviewEmpty.classList.remove('hidden');
+            return;
+        }
+
+        if (state.pdfSplitActivePage < 1 || state.pdfSplitActivePage > state.pdfSplitPageCount) {
+            state.pdfSplitActivePage = 1;
+        }
+
+        const highlightedPages = getSplitHighlightedPages();
+        const previewStatus = highlightedPages.has(state.pdfSplitActivePage) ? 'selected' : 'inspecting';
+        elements.pdfSplitPreviewMeta.textContent = `Page ${state.pdfSplitActivePage} of ${state.pdfSplitPageCount} · ${previewStatus}`;
+
+        try {
+            await renderPdfPagePreview({
+                pdfDocument: state.pdfSplitPreviewDocument,
+                pageNumber: state.pdfSplitActivePage,
+                canvas: elements.pdfSplitPreviewCanvas,
+                emptyState: elements.pdfSplitPreviewEmpty,
+                maxWidth: 560,
+                maxHeight: 680,
+                sequenceKey: 'pdfSplitPreviewSequence'
+            });
+        } catch (error) {
+            console.error('PDF split preview error:', error);
+            showPdfSplitFeedback(`Preview failed. (${error.message})`, true);
+        }
+    }
+
     function showPdfSplitFeedback(message, isError = false) {
         elements.pdfSplitFeedback.textContent = message;
         elements.pdfSplitFeedback.classList.remove('hidden');
@@ -679,6 +848,47 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pdfSplitFeedback.textContent = '';
         elements.pdfSplitFeedback.classList.add('hidden');
         elements.pdfSplitFeedback.classList.remove('is-error');
+    }
+
+    async function loadPdfPreviewDocument(bytes) {
+        if (!window.pdfjsLib) {
+            throw new Error('PDF preview library is unavailable.');
+        }
+
+        const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(bytes) });
+        return loadingTask.promise;
+    }
+
+    async function renderPdfPagePreview({ pdfDocument, pageNumber, canvas, emptyState, maxWidth, maxHeight, sequenceKey, extraRotation = 0 }) {
+        const sequence = ++state[sequenceKey];
+        const page = await pdfDocument.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: 1, rotation: extraRotation });
+        const scale = Math.min(maxWidth / viewport.width, maxHeight / viewport.height, 1.35);
+        const finalScale = Math.max(scale, 0.45);
+        const deviceScale = window.devicePixelRatio || 1;
+        const renderViewport = page.getViewport({ scale: finalScale * deviceScale, rotation: extraRotation });
+
+        if (sequence !== state[sequenceKey]) {
+            return;
+        }
+
+        const context = canvas.getContext('2d');
+        canvas.width = Math.ceil(renderViewport.width);
+        canvas.height = Math.ceil(renderViewport.height);
+        canvas.style.width = `${(renderViewport.width / deviceScale).toFixed(0)}px`;
+        canvas.style.height = `${(renderViewport.height / deviceScale).toFixed(0)}px`;
+
+        await page.render({
+            canvasContext: context,
+            viewport: renderViewport
+        }).promise;
+
+        if (sequence !== state[sequenceKey]) {
+            return;
+        }
+
+        canvas.classList.remove('hidden');
+        emptyState.classList.add('hidden');
     }
 
     function initializePdfOrganizer() {
@@ -696,6 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         renderOrganizerList();
+        updateOrganizerPreview();
     }
 
     async function loadOrganizerFile(file) {
@@ -707,8 +918,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 sourceIndex: pageIndex,
                 rotation: 0
             }));
+            state.pdfOrganizerPreviewDocument = await loadPdfPreviewDocument(state.pdfOrganizerSourceBytes);
+            state.pdfOrganizerActiveIndex = 0;
             hidePdfOrganizerFeedback();
             renderOrganizerList();
+            await updateOrganizerPreview();
         } catch (error) {
             console.error('PDF organizer load error:', error);
             showPdfOrganizerFeedback(`Failed to read PDF. (${error.message})`, true);
@@ -728,6 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.pdfOrganizerPages.forEach((page, index) => {
             const row = document.createElement('div');
             row.className = 'pdf-file-row';
+            row.classList.toggle('is-active', index === state.pdfOrganizerActiveIndex);
             row.innerHTML = `
                 <div class="pdf-file-meta">
                     <span class="pdf-file-name">Page ${page.sourceIndex + 1}</span>
@@ -740,10 +955,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="pdf-action-btn" data-action="remove">Remove</button>
                 </div>
             `;
-            row.querySelector('[data-action="up"]').addEventListener('click', () => moveOrganizerPage(index, -1));
-            row.querySelector('[data-action="down"]').addEventListener('click', () => moveOrganizerPage(index, 1));
-            row.querySelector('[data-action="rotate"]').addEventListener('click', () => rotateOrganizerPage(index));
-            row.querySelector('[data-action="remove"]').addEventListener('click', () => removeOrganizerPage(index));
+            row.addEventListener('click', () => {
+                state.pdfOrganizerActiveIndex = index;
+                renderOrganizerList();
+                updateOrganizerPreview();
+            });
+            row.querySelector('[data-action="up"]').addEventListener('click', (event) => {
+                event.stopPropagation();
+                moveOrganizerPage(index, -1);
+            });
+            row.querySelector('[data-action="down"]').addEventListener('click', (event) => {
+                event.stopPropagation();
+                moveOrganizerPage(index, 1);
+            });
+            row.querySelector('[data-action="rotate"]').addEventListener('click', (event) => {
+                event.stopPropagation();
+                rotateOrganizerPage(index);
+            });
+            row.querySelector('[data-action="remove"]').addEventListener('click', (event) => {
+                event.stopPropagation();
+                removeOrganizerPage(index);
+            });
             elements.pdfOrganizerList.appendChild(row);
         });
     }
@@ -758,17 +990,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const [page] = pages.splice(index, 1);
         pages.splice(nextIndex, 0, page);
         state.pdfOrganizerPages = pages;
+        state.pdfOrganizerActiveIndex = nextIndex;
         renderOrganizerList();
+        updateOrganizerPreview();
     }
 
     function rotateOrganizerPage(index) {
         state.pdfOrganizerPages[index].rotation = (state.pdfOrganizerPages[index].rotation + 90) % 360;
+        state.pdfOrganizerActiveIndex = index;
         renderOrganizerList();
+        updateOrganizerPreview();
     }
 
     function removeOrganizerPage(index) {
         state.pdfOrganizerPages = state.pdfOrganizerPages.filter((_, itemIndex) => itemIndex !== index);
+        state.pdfOrganizerActiveIndex = Math.max(0, Math.min(state.pdfOrganizerActiveIndex, state.pdfOrganizerPages.length - 1));
         renderOrganizerList();
+        updateOrganizerPreview();
+    }
+
+    async function updateOrganizerPreview() {
+        if (!state.pdfOrganizerPreviewDocument || !state.pdfOrganizerPages.length) {
+            elements.pdfOrganizerPreviewMeta.textContent = translations.en.pdf_preview_hint;
+            elements.pdfOrganizerPreviewCanvas.classList.add('hidden');
+            elements.pdfOrganizerPreviewEmpty.classList.remove('hidden');
+            return;
+        }
+
+        if (state.pdfOrganizerActiveIndex < 0 || state.pdfOrganizerActiveIndex >= state.pdfOrganizerPages.length) {
+            state.pdfOrganizerActiveIndex = 0;
+        }
+
+        const page = state.pdfOrganizerPages[state.pdfOrganizerActiveIndex];
+        elements.pdfOrganizerPreviewMeta.textContent = `Page ${page.sourceIndex + 1} of ${state.pdfOrganizerPages.length} · Rotation ${page.rotation}°`;
+
+        try {
+            await renderPdfPagePreview({
+                pdfDocument: state.pdfOrganizerPreviewDocument,
+                pageNumber: page.sourceIndex + 1,
+                canvas: elements.pdfOrganizerPreviewCanvas,
+                emptyState: elements.pdfOrganizerPreviewEmpty,
+                maxWidth: 560,
+                maxHeight: 700,
+                sequenceKey: 'pdfOrganizerPreviewSequence',
+                extraRotation: page.rotation
+            });
+        } catch (error) {
+            console.error('PDF organizer preview error:', error);
+            showPdfOrganizerFeedback(`Preview failed. (${error.message})`, true);
+        }
     }
 
     async function exportOrganizedPdf() {

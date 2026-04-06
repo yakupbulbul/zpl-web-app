@@ -7,14 +7,11 @@
     <title>ZPL to PNG Converter</title>
     <meta name="description"
         content="Free ZPL to PNG converter. Upload your ZPL file and get a high-quality PNG label instantly.">
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/favicon.png">
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- Icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
@@ -24,10 +21,11 @@
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
         <div class="blob blob-3"></div>
+        <div class="grid-overlay"></div>
     </div>
 
     <main class="container">
-        <header>
+        <header class="hero-panel glass-panel">
             <div class="header-actions">
                 <div class="badge-free">
                     <ion-icon name="sparkles"></ion-icon>
@@ -50,13 +48,17 @@
                     </button>
                 </div>
             </div>
-            <div class="logo-container">
-                <img src="assets/logo.png" alt="ZPL to PNG Logo" class="app-logo">
+            <div class="hero-body">
+                <div class="logo-container">
+                    <img src="assets/logo.png" alt="ZPL to PNG Logo" class="app-logo">
+                </div>
+                <div class="hero-copy">
+                    <p class="eyebrow">BROWSER-ONLY LABEL + PDF UTILITIES</p>
+                    <h1 data-i18n="title">ZPL to PNG Converter</h1>
+                    <p data-i18n="subtitle">Upload a ZPL file or paste ZPL code to generate a high-quality PNG label
+                        instantly.<br>No limits, no sign-up required, completely free.</p>
+                </div>
             </div>
-            <h1 data-i18n="title">ZPL to PNG Converter</h1>
-            <p data-i18n="subtitle">Upload a ZPL file or paste ZPL code to generate a high-quality PNG label
-                instantly.<br>No limits, no
-                sign-up required, completely free.</p>
         </header>
 
         <section class="tool-suite-nav glass-panel-small">
@@ -73,221 +75,269 @@
         </section>
 
         <section class="tool-panel active" id="zpl-tools-panel">
-            <section class="converter-box glass-panel">
-            <div class="tabs">
-                <button class="tab active" data-tab="upload">
-                    <ion-icon name="cloud-upload-outline"></ion-icon>
-                    <span data-i18n="tab_upload">File Upload</span>
-                </button>
-                <button class="tab" data-tab="paste">
-                    <ion-icon name="document-text-outline"></ion-icon>
-                    <span data-i18n="tab_paste">Paste Code</span>
-                </button>
-            </div>
-
-            <!-- Upload Tab -->
-            <div class="tab-content active" id="upload-tab">
-                <div class="drop-zone" id="drop-zone">
-                    <input type="file" id="file-input" accept=".zpl,.txt" hidden>
-                    <ion-icon name="document-attach-outline"></ion-icon>
-                    <h3 data-i18n="drop_title">Drag & Drop your ZPL file</h3>
-                    <p data-i18n="drop_or">or</p>
-                    <button class="btn btn-outline" id="browse-btn" data-i18n="btn_browse">Browse Files</button>
-                    <p class="file-hint" data-i18n="drop_hint">Supported formats: .zpl, .txt</p>
-                </div>
-                <!-- Selected File Info -->
-                <div class="file-info hidden" id="file-info">
-                    <div class="file-details">
-                        <ion-icon name="document-outline"></ion-icon>
-                        <span id="file-name">label.zpl</span>
-                    </div>
-                    <button class="btn-icon" id="remove-file-btn" aria-label="Remove file">
-                        <ion-icon name="close-circle"></ion-icon>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Paste Tab -->
-            <div class="tab-content" id="paste-tab">
-                <div class="textarea-wrapper">
-                    <div class="textarea-header">
-                        <label for="zpl-input" data-i18n="label_zpl_code">ZPL Code</label>
-                        <button class="btn-text" id="clear-btn" data-i18n="btn_clear">Clear</button>
-                    </div>
-                    <textarea id="zpl-input" placeholder="^XA&#10;^FO50,50^ADN,36,20^FDHello World^FS&#10;^XZ"
-                        spellcheck="false"></textarea>
-                </div>
-            </div>
-
-            <!-- Settings -->
-            <div class="settings">
-                <div class="setting-group">
-                    <label for="preset" data-i18n="label_preset">Label Preset</label>
-                    <div class="select-wrapper">
-                        <select id="preset">
-                            <option value="shipping_4x6" data-i18n="preset_shipping_4x6">4x6 Shipping Label</option>
-                            <option value="address_4x2" data-i18n="preset_address_4x2">4x2 Address Label</option>
-                            <option value="product_2x1" data-i18n="preset_product_2x1">2x1 Product Label</option>
-                            <option value="metric_100x150" data-i18n="preset_metric_100x150">100x150 mm</option>
-                            <option value="custom" data-i18n="preset_custom">Custom</option>
-                        </select>
-                        <ion-icon name="chevron-down-outline"></ion-icon>
-                    </div>
-                </div>
-                <div class="setting-group">
-                    <label for="density" data-i18n="label_density">Print Density</label>
-                    <div class="select-wrapper">
-                        <select id="density">
-                            <option value="6">152 (6 dpmm)</option>
-                            <option value="8" selected>203 (8 dpmm)</option>
-                            <option value="12">300 (12 dpmm)</option>
-                            <option value="24">600 (24 dpmm)</option>
-                        </select>
-                        <ion-icon name="chevron-down-outline"></ion-icon>
-                    </div>
-                </div>
-                <div class="setting-group size-group">
-                    <label data-i18n="label_size">Label Size (Inches)</label>
-                    <div class="size-inputs">
-                        <div class="input-with-label">
-                            <input type="number" id="width" value="4" step="0.1" min="1" max="15">
-                            <span>W</span>
+            <div class="zpl-workspace">
+                <div class="zpl-main-column">
+                    <section class="converter-box glass-panel">
+                        <div class="section-heading section-heading-tight">
+                            <span class="section-kicker">ZPL</span>
+                            <h2>ZPL Workspace</h2>
+                            <p>Prepare label input, adjust print settings, and generate browser-side output.</p>
                         </div>
-                        <span class="x-divider">×</span>
-                        <div class="input-with-label">
-                            <input type="number" id="height" value="6" step="0.1" min="1" max="15">
-                            <span>H</span>
+
+                        <div class="tabs">
+                            <button class="tab active" data-tab="upload">
+                                <ion-icon name="cloud-upload-outline"></ion-icon>
+                                <span data-i18n="tab_upload">File Upload</span>
+                            </button>
+                            <button class="tab" data-tab="paste">
+                                <ion-icon name="document-text-outline"></ion-icon>
+                                <span data-i18n="tab_paste">Paste Code</span>
+                            </button>
                         </div>
-                    </div>
+
+                        <div class="tab-content active" id="upload-tab">
+                            <div class="drop-zone" id="drop-zone">
+                                <input type="file" id="file-input" accept=".zpl,.txt" hidden>
+                                <ion-icon name="document-attach-outline"></ion-icon>
+                                <h3 data-i18n="drop_title">Drag & Drop your ZPL file</h3>
+                                <p data-i18n="drop_or">or</p>
+                                <button class="btn btn-outline" id="browse-btn" data-i18n="btn_browse">Browse Files</button>
+                                <p class="file-hint" data-i18n="drop_hint">Supported formats: .zpl, .txt</p>
+                            </div>
+                            <div class="file-info hidden" id="file-info">
+                                <div class="file-details">
+                                    <ion-icon name="document-outline"></ion-icon>
+                                    <span id="file-name">label.zpl</span>
+                                </div>
+                                <button class="btn-icon" id="remove-file-btn" aria-label="Remove file">
+                                    <ion-icon name="close-circle"></ion-icon>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="paste-tab">
+                            <div class="textarea-wrapper">
+                                <div class="textarea-header">
+                                    <label for="zpl-input" data-i18n="label_zpl_code">ZPL Code</label>
+                                    <button class="btn-text" id="clear-btn" data-i18n="btn_clear">Clear</button>
+                                </div>
+                                <textarea id="zpl-input" placeholder="^XA&#10;^FO50,50^ADN,36,20^FDHello World^FS&#10;^XZ"
+                                    spellcheck="false"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <div class="section-heading section-heading-inline">
+                                <span class="section-kicker">Settings</span>
+                                <h3>Label Output</h3>
+                            </div>
+                            <div class="settings">
+                                <div class="setting-group">
+                                    <label for="preset" data-i18n="label_preset">Label Preset</label>
+                                    <div class="select-wrapper">
+                                        <select id="preset">
+                                            <option value="shipping_4x6" data-i18n="preset_shipping_4x6">4x6 Shipping Label</option>
+                                            <option value="address_4x2" data-i18n="preset_address_4x2">4x2 Address Label</option>
+                                            <option value="product_2x1" data-i18n="preset_product_2x1">2x1 Product Label</option>
+                                            <option value="metric_100x150" data-i18n="preset_metric_100x150">100x150 mm</option>
+                                            <option value="custom" data-i18n="preset_custom">Custom</option>
+                                        </select>
+                                        <ion-icon name="chevron-down-outline"></ion-icon>
+                                    </div>
+                                </div>
+                                <div class="setting-group">
+                                    <label for="density" data-i18n="label_density">Print Density</label>
+                                    <div class="select-wrapper">
+                                        <select id="density">
+                                            <option value="6">152 (6 dpmm)</option>
+                                            <option value="8" selected>203 (8 dpmm)</option>
+                                            <option value="12">300 (12 dpmm)</option>
+                                            <option value="24">600 (24 dpmm)</option>
+                                        </select>
+                                        <ion-icon name="chevron-down-outline"></ion-icon>
+                                    </div>
+                                </div>
+                                <div class="setting-group size-group">
+                                    <label data-i18n="label_size">Label Size (Inches)</label>
+                                    <div class="size-inputs">
+                                        <div class="input-with-label">
+                                            <input type="number" id="width" value="4" step="0.1" min="1" max="15">
+                                            <span>W</span>
+                                        </div>
+                                        <span class="x-divider">×</span>
+                                        <div class="input-with-label">
+                                            <input type="number" id="height" value="6" step="0.1" min="1" max="15">
+                                            <span>H</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-block" id="convert-btn">
+                            <span data-i18n="btn_convert">Convert to PNG</span>
+                            <ion-icon name="arrow-forward-outline"></ion-icon>
+                        </button>
+
+                        <div class="loader-container hidden" id="loader">
+                            <div class="spinner"></div>
+                            <p data-i18n="loader_text">Generating Label...</p>
+                        </div>
+                    </section>
+
+                    <section class="result-section hidden glass-panel" id="result-section">
+                        <div class="result-header">
+                            <div class="section-heading section-heading-inline">
+                                <span class="section-kicker">Output</span>
+                                <h2 data-i18n="result_title">Generated Label</h2>
+                            </div>
+                            <button class="btn-icon btn-close-result" id="close-result-btn">
+                                <ion-icon name="close-outline"></ion-icon>
+                            </button>
+                        </div>
+                        <div class="image-preview" id="image-preview"></div>
+                        <div class="result-actions">
+                            <button class="btn btn-primary" id="download-btn">
+                                <ion-icon name="download-outline"></ion-icon>
+                                <span data-i18n="btn_download">Download PNG</span>
+                            </button>
+                            <button class="btn btn-outline" id="download-pdf-btn">
+                                <ion-icon name="document-outline"></ion-icon>
+                                <span data-i18n="btn_download_pdf">Download PDF</span>
+                            </button>
+                            <button class="btn btn-outline" id="copy-link-btn">
+                                <ion-icon name="share-social-outline"></ion-icon>
+                                <span data-i18n="btn_copy_share">Copy Share Link</span>
+                            </button>
+                            <button class="btn btn-outline" id="new-convert-btn" data-i18n="btn_convert_another">Convert Another</button>
+                        </div>
+                        <p class="action-feedback hidden" id="action-feedback"></p>
+                    </section>
                 </div>
-            </div>
 
-            <button class="btn btn-primary btn-block" id="convert-btn">
-                <span data-i18n="btn_convert">Convert to PNG</span>
-                <ion-icon name="arrow-forward-outline"></ion-icon>
-            </button>
-
-            <div class="loader-container hidden" id="loader">
-                <div class="spinner"></div>
-                <p data-i18n="loader_text">Generating Label...</p>
+                <aside class="zpl-side-column">
+                    <section class="history-panel glass-panel">
+                        <div class="history-header">
+                            <div>
+                                <span class="section-kicker">Restore</span>
+                                <h2 data-i18n="history_title">Recent Conversions</h2>
+                                <p data-i18n="history_subtitle">Restore one of your last successful ZPL sessions.</p>
+                            </div>
+                            <button class="btn-text" id="clear-history-btn" data-i18n="history_clear">Clear history</button>
+                        </div>
+                        <div class="history-list" id="history-list"></div>
+                        <p class="history-empty" id="history-empty" data-i18n="history_empty">No successful conversions saved yet.</p>
+                    </section>
+                </aside>
             </div>
-        </section>
-
-        <section class="history-panel glass-panel">
-            <div class="history-header">
-                <div>
-                    <h2 data-i18n="history_title">Recent Conversions</h2>
-                    <p data-i18n="history_subtitle">Restore one of your last successful ZPL sessions.</p>
-                </div>
-                <button class="btn-text" id="clear-history-btn" data-i18n="history_clear">Clear history</button>
-            </div>
-            <div class="history-list" id="history-list"></div>
-            <p class="history-empty" id="history-empty" data-i18n="history_empty">No successful conversions saved yet.</p>
-        </section>
-
-        <!-- Result Section -->
-            <section class="result-section hidden glass-panel" id="result-section">
-            <div class="result-header">
-                <h2 data-i18n="result_title">Generated Label</h2>
-                <button class="btn-icon btn-close-result" id="close-result-btn">
-                    <ion-icon name="close-outline"></ion-icon>
-                </button>
-            </div>
-            <div class="image-preview" id="image-preview">
-                <!-- Image will be injected here -->
-            </div>
-            <div class="result-actions">
-                <button class="btn btn-primary" id="download-btn">
-                    <ion-icon name="download-outline"></ion-icon>
-                    <span data-i18n="btn_download">Download PNG</span>
-                </button>
-                <button class="btn btn-outline" id="download-pdf-btn">
-                    <ion-icon name="document-outline"></ion-icon>
-                    <span data-i18n="btn_download_pdf">Download PDF</span>
-                </button>
-                <button class="btn btn-outline" id="copy-link-btn">
-                    <ion-icon name="share-social-outline"></ion-icon>
-                    <span data-i18n="btn_copy_share">Copy Share Link</span>
-                </button>
-                <button class="btn btn-outline" id="new-convert-btn" data-i18n="btn_convert_another">Convert
-                    Another</button>
-            </div>
-            <p class="action-feedback hidden" id="action-feedback"></p>
-            </section>
         </section>
 
         <section class="tool-panel hidden" id="pdf-tools-panel">
-            <section class="glass-panel pdf-tool-section">
-                <div class="section-heading">
-                    <h2 data-i18n="pdf_merge_heading">PDF Merge</h2>
-                    <p data-i18n="pdf_merge_subtitle">Select multiple PDF files, reorder them, and merge them directly in your browser.</p>
-                </div>
-                <input type="file" id="pdf-merge-input" accept="application/pdf,.pdf" multiple>
-                <div class="pdf-file-list" id="pdf-merge-list"></div>
-                <p class="pdf-tool-empty" id="pdf-merge-empty" data-i18n="pdf_merge_empty">No PDF files selected yet.</p>
-                <div class="pdf-tool-actions">
-                    <button class="btn btn-primary" id="pdf-merge-download-btn">
-                        <ion-icon name="download-outline"></ion-icon>
-                        <span data-i18n="pdf_merge_download">Download Merged PDF</span>
-                    </button>
-                </div>
-                <p class="action-feedback hidden" id="pdf-merge-feedback"></p>
-            </section>
+            <div class="pdf-tools-shell">
+                <section class="glass-panel pdf-tool-section">
+                    <div class="section-heading">
+                        <span class="section-kicker">Merge</span>
+                        <h2 data-i18n="pdf_merge_heading">PDF Merge</h2>
+                        <p data-i18n="pdf_merge_subtitle">Select multiple PDF files, reorder them, and merge them directly in your browser.</p>
+                    </div>
+                    <input type="file" id="pdf-merge-input" accept="application/pdf,.pdf" multiple>
+                    <div class="pdf-file-list" id="pdf-merge-list"></div>
+                    <p class="pdf-tool-empty" id="pdf-merge-empty" data-i18n="pdf_merge_empty">No PDF files selected yet.</p>
+                    <div class="pdf-tool-actions">
+                        <button class="btn btn-primary" id="pdf-merge-download-btn">
+                            <ion-icon name="download-outline"></ion-icon>
+                            <span data-i18n="pdf_merge_download">Download Merged PDF</span>
+                        </button>
+                    </div>
+                    <p class="action-feedback hidden" id="pdf-merge-feedback"></p>
+                </section>
 
-            <section class="glass-panel pdf-tool-section">
-                <div class="section-heading">
-                    <h2 data-i18n="pdf_organizer_heading">PDF Page Organizer</h2>
-                    <p data-i18n="pdf_organizer_subtitle">Upload one PDF, then remove, reorder, or rotate its pages before exporting.</p>
-                </div>
-                <input type="file" id="pdf-organizer-input" accept="application/pdf,.pdf">
-                <div class="pdf-file-list" id="pdf-organizer-list"></div>
-                <p class="pdf-tool-empty" id="pdf-organizer-empty" data-i18n="pdf_organizer_empty">Upload a PDF to start organizing pages.</p>
-                <div class="pdf-tool-actions">
-                    <button class="btn btn-primary" id="pdf-organizer-export-btn">
-                        <ion-icon name="download-outline"></ion-icon>
-                        <span data-i18n="pdf_organizer_export">Export Updated PDF</span>
-                    </button>
-                </div>
-                <p class="action-feedback hidden" id="pdf-organizer-feedback"></p>
-            </section>
-
-            <section class="glass-panel pdf-tool-section">
-                <div class="section-heading">
-                    <h2 data-i18n="pdf_split_heading">PDF Split</h2>
-                    <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
-                </div>
-                <input type="file" id="pdf-split-input" accept="application/pdf,.pdf">
-                <div class="settings">
-                    <div class="setting-group">
-                        <label for="pdf-split-mode" data-i18n="pdf_split_mode_label">Split Mode</label>
-                        <div class="select-wrapper">
-                            <select id="pdf-split-mode">
-                                <option value="selected" data-i18n="pdf_split_mode_selected">Extract Selected Pages</option>
-                                <option value="every" data-i18n="pdf_split_mode_every">Split Every Page</option>
-                                <option value="ranges" data-i18n="pdf_split_mode_ranges">Split by Page Ranges</option>
-                            </select>
-                            <ion-icon name="chevron-down-outline"></ion-icon>
+                <section class="glass-panel pdf-tool-section">
+                    <div class="section-heading">
+                        <span class="section-kicker">Organize</span>
+                        <h2 data-i18n="pdf_organizer_heading">PDF Page Organizer</h2>
+                        <p data-i18n="pdf_organizer_subtitle">Upload one PDF, then remove, reorder, or rotate its pages before exporting.</p>
+                    </div>
+                    <input type="file" id="pdf-organizer-input" accept="application/pdf,.pdf">
+                    <div class="pdf-tool-frame pdf-tool-frame-organizer">
+                        <div class="pdf-tool-controls">
+                            <div class="pdf-file-list" id="pdf-organizer-list"></div>
+                            <p class="pdf-tool-empty" id="pdf-organizer-empty" data-i18n="pdf_organizer_empty">Upload a PDF to start organizing pages.</p>
+                            <div class="pdf-tool-actions">
+                                <button class="btn btn-primary" id="pdf-organizer-export-btn">
+                                    <ion-icon name="download-outline"></ion-icon>
+                                    <span data-i18n="pdf_organizer_export">Export Updated PDF</span>
+                                </button>
+                            </div>
+                            <p class="action-feedback hidden" id="pdf-organizer-feedback"></p>
+                        </div>
+                        <div class="pdf-preview-panel">
+                            <div class="pdf-preview-header">
+                                <span class="section-kicker" data-i18n="pdf_preview_label">Preview</span>
+                                <p class="pdf-preview-meta" id="pdf-organizer-preview-meta" data-i18n="pdf_preview_hint">Upload a PDF and select a page to preview it here.</p>
+                            </div>
+                            <div class="pdf-preview-stage">
+                                <p class="pdf-preview-empty" id="pdf-organizer-preview-empty" data-i18n="pdf_preview_empty">Preview will appear here when a page is available.</p>
+                                <canvas id="pdf-organizer-preview-canvas" class="pdf-preview-canvas hidden"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="setting-group">
-                        <label for="pdf-split-ranges" data-i18n="pdf_split_input_label">Pages / Ranges</label>
-                        <input type="text" id="pdf-split-ranges" placeholder="1,3,5 or 1-3,4-6">
+                </section>
+
+                <section class="glass-panel pdf-tool-section">
+                    <div class="section-heading">
+                        <span class="section-kicker">Split</span>
+                        <h2 data-i18n="pdf_split_heading">PDF Split</h2>
+                        <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
                     </div>
-                </div>
-                <div class="pdf-tool-actions">
-                    <button class="btn btn-primary" id="pdf-split-run-btn">
-                        <ion-icon name="cut-outline"></ion-icon>
-                        <span data-i18n="pdf_split_run">Generate Split PDFs</span>
-                    </button>
-                </div>
-                <div class="pdf-output-list" id="pdf-split-output-list"></div>
-                <p class="pdf-tool-empty" id="pdf-split-empty" data-i18n="pdf_split_empty">Upload a PDF and choose how to split it.</p>
-                <p class="action-feedback hidden" id="pdf-split-feedback"></p>
-            </section>
+                    <input type="file" id="pdf-split-input" accept="application/pdf,.pdf">
+                    <div class="settings pdf-split-settings">
+                        <div class="setting-group">
+                            <label for="pdf-split-mode" data-i18n="pdf_split_mode_label">Split Mode</label>
+                            <div class="select-wrapper">
+                                <select id="pdf-split-mode">
+                                    <option value="selected" data-i18n="pdf_split_mode_selected">Extract Selected Pages</option>
+                                    <option value="every" data-i18n="pdf_split_mode_every">Split Every Page</option>
+                                    <option value="ranges" data-i18n="pdf_split_mode_ranges">Split by Page Ranges</option>
+                                </select>
+                                <ion-icon name="chevron-down-outline"></ion-icon>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label for="pdf-split-ranges" data-i18n="pdf_split_input_label">Pages / Ranges</label>
+                            <input type="text" id="pdf-split-ranges" placeholder="1,3,5 or 1-3,4-6">
+                        </div>
+                    </div>
+                    <div class="pdf-tool-frame pdf-tool-frame-split">
+                        <div class="pdf-tool-controls">
+                            <div class="pdf-tool-actions">
+                                <button class="btn btn-primary" id="pdf-split-run-btn">
+                                    <ion-icon name="cut-outline"></ion-icon>
+                                    <span data-i18n="pdf_split_run">Generate Split PDFs</span>
+                                </button>
+                            </div>
+                            <div class="pdf-output-list" id="pdf-split-output-list"></div>
+                            <p class="pdf-tool-empty" id="pdf-split-empty" data-i18n="pdf_split_empty">Upload a PDF and choose how to split it.</p>
+                            <p class="action-feedback hidden" id="pdf-split-feedback"></p>
+                        </div>
+                        <div class="pdf-preview-panel">
+                            <div class="pdf-preview-header">
+                                <span class="section-kicker" data-i18n="pdf_preview_label">Preview</span>
+                                <p class="pdf-preview-meta" id="pdf-split-preview-meta" data-i18n="pdf_split_preview_hint">Upload a PDF to inspect pages before splitting.</p>
+                            </div>
+                            <div class="pdf-page-grid" id="pdf-split-page-grid"></div>
+                            <div class="pdf-preview-stage">
+                                <p class="pdf-preview-empty" id="pdf-split-preview-empty" data-i18n="pdf_preview_empty">Preview will appear here when a page is available.</p>
+                                <canvas id="pdf-split-preview-canvas" class="pdf-preview-canvas hidden"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </section>
     </main>
 
-    <footer class="glass-panel-small">
+    <footer class="glass-panel-small footer-panel">
         <p><span data-i18n="footer_built">Built with</span> <ion-icon name="heart" class="heart-icon"></ion-icon>
             <span data-i18n="footer_by">by Yakup</span>
         </p>
@@ -305,6 +355,7 @@
     </footer>
 
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/lz-string/libs/lz-string.min.js"></script>
     <script src="script.js"></script>
 </body>
