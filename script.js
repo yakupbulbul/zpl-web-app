@@ -606,11 +606,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadSplitFile(file) {
         try {
             clearPdfSplitOutputs();
-            state.pdfSplitSourceBytes = await file.arrayBuffer();
+            state.pdfSplitSourceBytes = cloneArrayBuffer(await file.arrayBuffer());
             const { PDFDocument } = window.PDFLib;
-            const document = await PDFDocument.load(state.pdfSplitSourceBytes);
+            const document = await PDFDocument.load(cloneArrayBuffer(state.pdfSplitSourceBytes));
             state.pdfSplitPageCount = document.getPageCount();
-            state.pdfSplitPreviewDocument = await loadPdfPreviewDocument(state.pdfSplitSourceBytes);
+            state.pdfSplitPreviewDocument = await loadPdfPreviewDocument(cloneArrayBuffer(state.pdfSplitSourceBytes));
             state.pdfSplitActivePage = 1;
             hidePdfSplitFeedback();
             renderPdfSplitOutputs();
@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             clearPdfSplitOutputs();
             const mode = elements.pdfSplitMode.value;
-            const sourceDocument = await window.PDFLib.PDFDocument.load(state.pdfSplitSourceBytes);
+            const sourceDocument = await window.PDFLib.PDFDocument.load(cloneArrayBuffer(state.pdfSplitSourceBytes));
 
             if (mode === 'every') {
                 for (let pageIndex = 0; pageIndex < state.pdfSplitPageCount; pageIndex += 1) {
@@ -897,6 +897,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pdfSplitFeedback.classList.remove('is-error');
     }
 
+    function cloneArrayBuffer(buffer) {
+        return buffer.slice(0);
+    }
+
     async function loadPdfPreviewDocument(bytes) {
         if (!window.pdfjsLib) {
             throw new Error('PDF preview library is unavailable.');
@@ -967,14 +971,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadOrganizerFile(file) {
         try {
-            state.pdfOrganizerSourceBytes = await file.arrayBuffer();
+            state.pdfOrganizerSourceBytes = cloneArrayBuffer(await file.arrayBuffer());
             const { PDFDocument } = window.PDFLib;
-            const document = await PDFDocument.load(state.pdfOrganizerSourceBytes);
+            const document = await PDFDocument.load(cloneArrayBuffer(state.pdfOrganizerSourceBytes));
             state.pdfOrganizerPages = document.getPageIndices().map((pageIndex) => ({
                 sourceIndex: pageIndex,
                 rotation: 0
             }));
-            state.pdfOrganizerPreviewDocument = await loadPdfPreviewDocument(state.pdfOrganizerSourceBytes);
+            state.pdfOrganizerPreviewDocument = await loadPdfPreviewDocument(cloneArrayBuffer(state.pdfOrganizerSourceBytes));
             state.pdfOrganizerActiveIndex = 0;
             hidePdfOrganizerFeedback();
             renderOrganizerList();
@@ -1105,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const { PDFDocument, degrees } = window.PDFLib;
-            const sourceDocument = await PDFDocument.load(state.pdfOrganizerSourceBytes);
+            const sourceDocument = await PDFDocument.load(cloneArrayBuffer(state.pdfOrganizerSourceBytes));
             const updatedDocument = await PDFDocument.create();
 
             for (const page of state.pdfOrganizerPages) {
@@ -1165,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 nextFiles.push({
                     name: file.name,
-                    bytes: await file.arrayBuffer()
+                    bytes: cloneArrayBuffer(await file.arrayBuffer())
                 });
             } catch (error) {
                 console.error('PDF merge file read error:', error);
@@ -1237,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const mergedDocument = await PDFDocument.create();
 
             for (const file of state.pdfMergeFiles) {
-                const source = await PDFDocument.load(file.bytes);
+                const source = await PDFDocument.load(cloneArrayBuffer(file.bytes));
                 const pageIndices = source.getPageIndices();
                 const copiedPages = await mergedDocument.copyPages(source, pageIndices);
                 copiedPages.forEach((page) => mergedDocument.addPage(page));
