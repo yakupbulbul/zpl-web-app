@@ -176,9 +176,14 @@
                     <ion-icon name="download-outline"></ion-icon>
                     <span data-i18n="btn_download">Download PNG</span>
                 </button>
+                <button class="btn btn-outline" id="download-pdf-btn">
+                    <ion-icon name="document-outline"></ion-icon>
+                    <span data-i18n="btn_download_pdf">Download PDF</span>
+                </button>
                 <button class="btn btn-outline" id="new-convert-btn" data-i18n="btn_convert_another">Convert
                     Another</button>
             </div>
+            <p class="action-feedback hidden" id="action-feedback"></p>
             </section>
         </section>
 
@@ -235,6 +240,7 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="script.js"></script>
 </body>
 

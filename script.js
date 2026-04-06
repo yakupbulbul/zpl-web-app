@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "loader_text": "Generating Label...",
             "result_title": "Generated Label",
             "btn_download": "Download PNG",
+            "btn_download_pdf": "Download PDF",
             "btn_convert_another": "Convert Another",
             "footer_built": "Built with",
             "footer_by": "by Yakup",
@@ -172,8 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultSection: document.getElementById('result-section'),
         imagePreview: document.getElementById('image-preview'),
         downloadBtn: document.getElementById('download-btn'),
+        downloadPdfBtn: document.getElementById('download-pdf-btn'),
         newConvertBtn: document.getElementById('new-convert-btn'),
         closeResultBtn: document.getElementById('close-result-btn'),
+        actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
         langBtn: document.getElementById('lang-btn')
@@ -183,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentMode: 'upload',
         selectedFile: null,
         generatedBlobUrl: null,
+        generatedImageBlob: null,
         currentTool: 'zpl'
     };
 
@@ -366,6 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBlobUrl(state.generatedBlobUrl, 'label.png');
         });
 
+        elements.downloadPdfBtn.addEventListener('click', async () => {
+            await downloadCurrentPdf();
+        });
+
         elements.newConvertBtn.addEventListener('click', resetView);
         elements.closeResultBtn.addEventListener('click', resetView);
     }
@@ -414,6 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const blob = await fetchLabelImage(zplData, settings);
+            state.generatedImageBlob = blob;
+            hideFeedback();
             const blobUrl = createBlobUrl(blob);
             displayResult(blobUrl);
         } catch (error) {
@@ -482,7 +492,82 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     }
 
+    async function downloadCurrentPdf() {
+        if (!state.generatedImageBlob) {
+            showFeedback('Please generate a label before exporting PDF.', true);
+            return;
+        }
+
+        if (!window.PDFLib || !window.PDFLib.PDFDocument) {
+            showFeedback('PDF export is not available right now.', true);
+            return;
+        }
+
+        const label = elements.downloadPdfBtn.querySelector('[data-i18n="btn_download_pdf"]');
+        const originalText = label ? label.textContent : 'Download PDF';
+        elements.downloadPdfBtn.disabled = true;
+
+        if (label) {
+            label.textContent = 'Generating PDF...';
+        }
+
+        try {
+            const pdfBytes = await buildPdfFromCurrentImage();
+            const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            downloadBlobUrl(pdfUrl, 'label.pdf');
+            setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+            hideFeedback();
+        } catch (error) {
+            console.error('PDF export error:', error);
+            showFeedback(`Failed to build PDF. (${error.message})`, true);
+        } finally {
+            elements.downloadPdfBtn.disabled = false;
+            if (label) {
+                label.textContent = originalText;
+            }
+        }
+    }
+
+    async function buildPdfFromCurrentImage() {
+        const { PDFDocument } = window.PDFLib;
+        const pdfDocument = await PDFDocument.create();
+        const imageBytes = await state.generatedImageBlob.arrayBuffer();
+        const pngImage = await pdfDocument.embedPng(imageBytes);
+        const page = pdfDocument.addPage([pngImage.width, pngImage.height]);
+
+        page.drawImage(pngImage, {
+            x: 0,
+            y: 0,
+            width: pngImage.width,
+            height: pngImage.height
+        });
+
+        return pdfDocument.save();
+    }
+
+    function showFeedback(message, isError = false) {
+        if (!elements.actionFeedback) {
+            return;
+        }
+
+        elements.actionFeedback.textContent = message;
+        elements.actionFeedback.classList.remove('hidden');
+        elements.actionFeedback.classList.toggle('is-error', isError);
+    }
+
+    function hideFeedback() {
+        if (!elements.actionFeedback) {
+            return;
+        }
+
+        elements.actionFeedback.textContent = '';
+        elements.actionFeedback.classList.add('hidden');
+        elements.actionFeedback.classList.remove('is-error');
+    }
+
     function resetView() {
+        hideFeedback();
         elements.resultSection.classList.add('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }

@@ -926,3 +926,13 @@ input[type="number"]:focus {
     font-size: 0.8rem;
     font-weight: 600;
 }
+
+.action-feedback {
+    margin-top: 1rem;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.action-feedback.is-error {
+    color: var(--danger-color);
+}
