@@ -187,7 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFile: null,
         generatedBlobUrl: null,
         generatedImageBlob: null,
-        currentTool: 'zpl'
+        currentTool: 'zpl',
+        livePreviewTimer: null,
+        renderRequestSequence: 0,
+        latestRenderRequest: 0
     };
 
     initializeTheme();
@@ -288,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function switchInputTab(targetTab) {
         state.currentMode = targetTab;
+        clearLivePreviewTimer();
 
         elements.tabs.forEach((tab) => {
             tab.classList.toggle('active', tab.dataset.tab === targetTab);
@@ -347,12 +351,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializePaste() {
-        elements.zplInput.addEventListener('input', updateConvertButtonState);
+        elements.zplInput.addEventListener('input', () => {
+            updateConvertButtonState();
+            scheduleLivePreview();
+        });
 
         elements.clearBtn.addEventListener('click', () => {
+            clearLivePreviewTimer();
             elements.zplInput.value = '';
             updateConvertButtonState();
         });
+    }
+
+    function scheduleLivePreview() {
+        clearLivePreviewTimer();
+
+        if (state.currentMode !== 'paste') {
+            return;
+        }
+
+        const zplData = elements.zplInput.value.trim();
+        if (!zplData) {
+            return;
+        }
+
+        state.livePreviewTimer = window.setTimeout(() => {
+            requestRender(zplData, getRenderSettings());
+        }, 500);
+    }
+
+    function clearLivePreviewTimer() {
+        if (state.livePreviewTimer) {
+            window.clearTimeout(state.livePreviewTimer);
+            state.livePreviewTimer = null;
+        }
+    }
+
+    async function requestRender(zplData, settings) {
+        const requestId = ++state.renderRequestSequence;
+        state.latestRenderRequest = requestId;
+        await renderZplToPng(zplData, settings, requestId);
     }
 
     function initializeActions() {
@@ -363,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const settings = getRenderSettings();
-            await renderZplToPng(zplData, settings);
+            await requestRender(zplData, settings);
         });
 
         elements.downloadBtn.addEventListener('click', () => {
@@ -417,20 +455,31 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    async function renderZplToPng(zplData, settings) {
+    async function renderZplToPng(zplData, settings, requestId) {
         setLoadingState(true);
 
         try {
             const blob = await fetchLabelImage(zplData, settings);
+
+            if (requestId !== state.latestRenderRequest) {
+                return;
+            }
+
             state.generatedImageBlob = blob;
             hideFeedback();
             const blobUrl = createBlobUrl(blob);
             displayResult(blobUrl);
         } catch (error) {
+            if (requestId !== state.latestRenderRequest) {
+                return;
+            }
+
             console.error('Conversion error:', error);
             alert(`Failed to convert ZPL. Please check your code or try again. (${error.message})`);
         } finally {
-            setLoadingState(false);
+            if (requestId === state.latestRenderRequest) {
+                setLoadingState(false);
+            }
         }
     }
 
