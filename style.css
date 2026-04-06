@@ -1000,3 +1000,71 @@ input[type="number"]:focus {
 .history-empty {
     font-size: 0.92rem;
 }
+
+.pdf-tool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pdf-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pdf-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+}
+
+.pdf-file-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.pdf-file-name {
+    font-weight: 600;
+}
+
+.pdf-file-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.pdf-file-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.pdf-action-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+}
+
+.pdf-action-btn:hover {
+    border-color: rgba(59, 130, 246, 0.35);
+    color: var(--primary-color);
+}
+
+.pdf-tool-empty {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.pdf-tool-actions {
+    display: flex;
+    justify-content: flex-start;
+}

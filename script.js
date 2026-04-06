@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "tool_nav_pdf": "PDF Tools",
             "pdf_tools_title": "PDF Tools",
             "pdf_tools_subtitle": "Browser-based PDF utilities will live here alongside the existing ZPL workflow.",
+            "pdf_merge_heading": "PDF Merge",
+            "pdf_merge_subtitle": "Select multiple PDF files, reorder them, and merge them directly in your browser.",
+            "pdf_merge_empty": "No PDF files selected yet.",
+            "pdf_merge_download": "Download Merged PDF",
             "pdf_tool_merge_title": "PDF Merge",
             "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
             "pdf_tool_organize_title": "PDF Page Organizer",
@@ -194,6 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
         historyList: document.getElementById('history-list'),
         historyEmpty: document.getElementById('history-empty'),
         clearHistoryBtn: document.getElementById('clear-history-btn'),
+        pdfMergeInput: document.getElementById('pdf-merge-input'),
+        pdfMergeList: document.getElementById('pdf-merge-list'),
+        pdfMergeEmpty: document.getElementById('pdf-merge-empty'),
+        pdfMergeDownloadBtn: document.getElementById('pdf-merge-download-btn'),
+        pdfMergeFeedback: document.getElementById('pdf-merge-feedback'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -212,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyingPreset: false,
         conversionHistory: [],
         lastRenderedZpl: '',
-        lastRenderSettings: null
+        lastRenderSettings: null,
+        pdfMergeFiles: []
     };
 
     const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
@@ -235,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePaste();
     initializeActions();
     initializeSharedState();
+    initializePdfMerge();
     updateConvertButtonState();
 
     function initializeTheme() {
@@ -461,6 +472,128 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestId = ++state.renderRequestSequence;
         state.latestRenderRequest = requestId;
         await renderZplToPng(zplData, settings, requestId, options);
+    }
+
+    function initializePdfMerge() {
+        elements.pdfMergeInput.addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files || []);
+            await addMergeFiles(files);
+            elements.pdfMergeInput.value = '';
+        });
+
+        elements.pdfMergeDownloadBtn.addEventListener('click', async () => {
+            await downloadMergedPdf();
+        });
+
+        renderMergeFileList();
+    }
+
+    async function addMergeFiles(files) {
+        const nextFiles = [];
+
+        for (const file of files) {
+            try {
+                nextFiles.push({
+                    name: file.name,
+                    bytes: await file.arrayBuffer()
+                });
+            } catch (error) {
+                console.error('PDF merge file read error:', error);
+            }
+        }
+
+        state.pdfMergeFiles = [...state.pdfMergeFiles, ...nextFiles];
+        renderMergeFileList();
+    }
+
+    function renderMergeFileList() {
+        elements.pdfMergeList.innerHTML = '';
+
+        if (!state.pdfMergeFiles.length) {
+            elements.pdfMergeEmpty.classList.remove('hidden');
+            return;
+        }
+
+        elements.pdfMergeEmpty.classList.add('hidden');
+
+        state.pdfMergeFiles.forEach((file, index) => {
+            const row = document.createElement('div');
+            row.className = 'pdf-file-row';
+            row.innerHTML = `
+                <div class="pdf-file-meta">
+                    <span class="pdf-file-name">${escapeHtml(file.name)}</span>
+                    <span class="pdf-file-subtitle">PDF ${index + 1}</span>
+                </div>
+                <div class="pdf-file-actions">
+                    <button class="pdf-action-btn" data-action="up">Up</button>
+                    <button class="pdf-action-btn" data-action="down">Down</button>
+                    <button class="pdf-action-btn" data-action="remove">Remove</button>
+                </div>
+            `;
+
+            row.querySelector('[data-action="up"]').addEventListener('click', () => moveMergeFile(index, -1));
+            row.querySelector('[data-action="down"]').addEventListener('click', () => moveMergeFile(index, 1));
+            row.querySelector('[data-action="remove"]').addEventListener('click', () => removeMergeFile(index));
+            elements.pdfMergeList.appendChild(row);
+        });
+    }
+
+    function moveMergeFile(index, direction) {
+        const nextIndex = index + direction;
+        if (nextIndex < 0 || nextIndex >= state.pdfMergeFiles.length) {
+            return;
+        }
+
+        const files = [...state.pdfMergeFiles];
+        const [item] = files.splice(index, 1);
+        files.splice(nextIndex, 0, item);
+        state.pdfMergeFiles = files;
+        renderMergeFileList();
+    }
+
+    function removeMergeFile(index) {
+        state.pdfMergeFiles = state.pdfMergeFiles.filter((_, itemIndex) => itemIndex !== index);
+        renderMergeFileList();
+    }
+
+    async function downloadMergedPdf() {
+        if (state.pdfMergeFiles.length < 2) {
+            showPdfMergeFeedback('Select at least two PDF files to merge.', true);
+            return;
+        }
+
+        try {
+            const { PDFDocument } = window.PDFLib;
+            const mergedDocument = await PDFDocument.create();
+
+            for (const file of state.pdfMergeFiles) {
+                const source = await PDFDocument.load(file.bytes);
+                const pageIndices = source.getPageIndices();
+                const copiedPages = await mergedDocument.copyPages(source, pageIndices);
+                copiedPages.forEach((page) => mergedDocument.addPage(page));
+            }
+
+            const mergedBytes = await mergedDocument.save();
+            const mergedUrl = URL.createObjectURL(new Blob([mergedBytes], { type: 'application/pdf' }));
+            downloadBlobUrl(mergedUrl, 'merged.pdf');
+            setTimeout(() => URL.revokeObjectURL(mergedUrl), 1000);
+            hidePdfMergeFeedback();
+        } catch (error) {
+            console.error('PDF merge error:', error);
+            showPdfMergeFeedback(`Failed to merge PDFs. (${error.message})`, true);
+        }
+    }
+
+    function showPdfMergeFeedback(message, isError = false) {
+        elements.pdfMergeFeedback.textContent = message;
+        elements.pdfMergeFeedback.classList.remove('hidden');
+        elements.pdfMergeFeedback.classList.toggle('is-error', isError);
+    }
+
+    function hidePdfMergeFeedback() {
+        elements.pdfMergeFeedback.textContent = '';
+        elements.pdfMergeFeedback.classList.add('hidden');
+        elements.pdfMergeFeedback.classList.remove('is-error');
     }
 
     function initializeSharedState() {

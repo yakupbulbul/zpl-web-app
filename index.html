@@ -217,6 +217,23 @@
         </section>
 
         <section class="tool-panel hidden" id="pdf-tools-panel">
+            <section class="glass-panel pdf-tool-section">
+                <div class="section-heading">
+                    <h2 data-i18n="pdf_merge_heading">PDF Merge</h2>
+                    <p data-i18n="pdf_merge_subtitle">Select multiple PDF files, reorder them, and merge them directly in your browser.</p>
+                </div>
+                <input type="file" id="pdf-merge-input" accept="application/pdf,.pdf" multiple>
+                <div class="pdf-file-list" id="pdf-merge-list"></div>
+                <p class="pdf-tool-empty" id="pdf-merge-empty" data-i18n="pdf_merge_empty">No PDF files selected yet.</p>
+                <div class="pdf-tool-actions">
+                    <button class="btn btn-primary" id="pdf-merge-download-btn">
+                        <ion-icon name="download-outline"></ion-icon>
+                        <span data-i18n="pdf_merge_download">Download Merged PDF</span>
+                    </button>
+                </div>
+                <p class="action-feedback hidden" id="pdf-merge-feedback"></p>
+            </section>
+
             <section class="glass-panel pdf-placeholder-panel">
                 <div class="section-heading">
                     <h2 data-i18n="pdf_tools_title">PDF Tools</h2>
