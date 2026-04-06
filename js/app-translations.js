@@ -36,8 +36,6 @@ window.ZplWebApp.translations = {
         "tool_nav_qr": "QR Code Generator",
         "qr_heading": "QR Code Generator",
         "qr_subtitle": "Generate QR codes in the browser from text, URLs, and arbitrary strings with export-ready output.",
-        "qr_placeholder_title": "Standalone QR workspace",
-        "qr_placeholder_text": "QR input, preview, and export controls will live here as a separate top-level tool.",
         "qr_content_label": "QR Content",
         "qr_reset": "Clear",
         "qr_options_kicker": "Options",
@@ -58,7 +56,6 @@ window.ZplWebApp.translations = {
         "qr_library_missing": "QR generation is not available right now.",
         "qr_invalid_size": "Size must be between 128px and 1024px.",
         "qr_invalid_margin": "Margin must be between 0 and 16.",
-        "qr_preview_ready": "QR preview is ready.",
         "qr_preview_failed": "Unable to generate this QR code with the current input.",
         "qr_export_missing": "Generate a QR code preview before downloading.",
         "qr_png_downloaded": "PNG download started.",
@@ -121,7 +118,8 @@ window.ZplWebApp.translations = {
         "btn_convert_another": "Neues Etikett",
         "footer_built": "Erstellt mit",
         "footer_by": "von Yakup",
-        "footer_github": "GitHub-Profil"
+        "footer_github": "GitHub-Profil",
+        "tool_nav_qr": "QR-Code-Generator"
     },
     tr: {
         "badge_free": "Tamamen Ücretsiz",
@@ -144,7 +142,8 @@ window.ZplWebApp.translations = {
         "btn_convert_another": "Yeni Dönüştür",
         "footer_built": "Geliştirici:",
         "footer_by": "Yakup",
-        "footer_github": "GitHub Profili"
+        "footer_github": "GitHub Profili",
+        "tool_nav_qr": "QR Kod Oluşturucu"
     },
     nl: {
         "badge_free": "100% Gratis",
@@ -167,7 +166,8 @@ window.ZplWebApp.translations = {
         "btn_convert_another": "Nieuw Label",
         "footer_built": "Gemaakt met",
         "footer_by": "door Yakup",
-        "footer_github": "GitHub Profiel"
+        "footer_github": "GitHub Profiel",
+        "tool_nav_qr": "QR-codegenerator"
     },
     fr: {
         "badge_free": "100% Gratuit",
@@ -190,7 +190,8 @@ window.ZplWebApp.translations = {
         "btn_convert_another": "Nouvelle Étiquette",
         "footer_built": "Fait avec",
         "footer_by": "par Yakup",
-        "footer_github": "Profil GitHub"
+        "footer_github": "Profil GitHub",
+        "tool_nav_qr": "Générateur de QR code"
     },
     it: {
         "badge_free": "100% Gratuito",
@@ -213,6 +214,7 @@ window.ZplWebApp.translations = {
         "btn_convert_another": "Nuova Etichetta",
         "footer_built": "Creato con",
         "footer_by": "da Yakup",
-        "footer_github": "Profilo GitHub"
+        "footer_github": "Profilo GitHub",
+        "tool_nav_qr": "Generatore di codici QR"
     }
 };

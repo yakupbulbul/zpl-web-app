@@ -1336,3 +1336,21 @@ select {
     color: var(--text-muted);
     font-size: 0.9rem;
 }
+
+
+@media (max-width: 980px) {
+    .qr-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .qr-settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .qr-preview-stage {
+        min-height: 16rem;
+        padding: 1rem;
+    }
+}

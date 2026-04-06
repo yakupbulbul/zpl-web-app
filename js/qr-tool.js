@@ -68,7 +68,7 @@ window.ZplWebApp.createQrTool = function createQrTool({
             featureState.svgMarkup = svgMarkup;
             featureState.pngDataUrl = pngDataUrl;
             showPreview(svgMarkup);
-            showFeedback(getMessage('qr_preview_ready'));
+            clearFeedback();
             updateActionState(true);
         } catch (error) {
             console.error('QR preview error:', error);
@@ -115,7 +115,13 @@ window.ZplWebApp.createQrTool = function createQrTool({
         elements.qrPreview.classList.add('hidden');
         elements.qrPreviewEmpty.textContent = message;
         elements.qrPreviewEmpty.classList.remove('hidden');
-        showFeedback(message, Boolean(isError));
+
+        if (isError) {
+            showFeedback(message, true);
+        } else {
+            clearFeedback();
+        }
+
         updateActionState(false);
     }
 
