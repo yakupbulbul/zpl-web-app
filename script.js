@@ -39,7 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
             "pdf_tool_organize_desc": "Reorder, remove, and rotate pages with a lightweight browser UI.",
             "pdf_tool_split_title": "PDF Split",
             "pdf_tool_split_desc": "Extract page ranges or split documents into separate files on the client.",
-            "pdf_tool_coming_soon": "Coming soon"
+            "pdf_tool_coming_soon": "Coming soon",
+            "history_title": "Recent Conversions",
+            "history_subtitle": "Restore one of your last successful ZPL sessions.",
+            "history_clear": "Clear history",
+            "history_empty": "No successful conversions saved yet."
         },
         de: {
             "badge_free": "100% Kostenlos",
@@ -183,6 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadPdfBtn: document.getElementById('download-pdf-btn'),
         newConvertBtn: document.getElementById('new-convert-btn'),
         closeResultBtn: document.getElementById('close-result-btn'),
+        historyList: document.getElementById('history-list'),
+        historyEmpty: document.getElementById('history-empty'),
+        clearHistoryBtn: document.getElementById('clear-history-btn'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -198,8 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewTimer: null,
         renderRequestSequence: 0,
         latestRenderRequest: 0,
-        applyingPreset: false
+        applyingPreset: false,
+        conversionHistory: []
     };
+
+    const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
+    const HISTORY_LIMIT = 10;
 
     const labelPresets = {
         shipping_4x6: { width: '4', height: '6', density: '8' },
@@ -214,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     initializeUpload();
     initializePresets();
+    initializeHistory();
     initializePaste();
     initializeActions();
     updateConvertButtonState();
@@ -438,10 +450,124 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function requestRender(zplData, settings) {
+    async function requestRender(zplData, settings, options = {}) {
         const requestId = ++state.renderRequestSequence;
         state.latestRenderRequest = requestId;
-        await renderZplToPng(zplData, settings, requestId);
+        await renderZplToPng(zplData, settings, requestId, options);
+    }
+
+    function initializeHistory() {
+        state.conversionHistory = loadHistoryEntries();
+        renderHistoryList();
+
+        elements.clearHistoryBtn.addEventListener('click', () => {
+            state.conversionHistory = [];
+            localStorage.removeItem(HISTORY_STORAGE_KEY);
+            renderHistoryList();
+        });
+    }
+
+    function loadHistoryEntries() {
+        try {
+            const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+            if (!raw) {
+                return [];
+            }
+
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+
+            return parsed.filter(isValidHistoryEntry).slice(0, HISTORY_LIMIT);
+        } catch (error) {
+            console.error('History parse error:', error);
+            return [];
+        }
+    }
+
+    function isValidHistoryEntry(entry) {
+        return Boolean(
+            entry &&
+            typeof entry.timestamp === 'number' &&
+            typeof entry.width === 'string' &&
+            typeof entry.height === 'string' &&
+            typeof entry.density === 'string' &&
+            typeof entry.snippet === 'string' &&
+            typeof entry.zpl === 'string' &&
+            entry.zpl.trim()
+        );
+    }
+
+    function saveHistoryEntry(zplData, settings) {
+        const entry = {
+            timestamp: Date.now(),
+            width: String(settings.width),
+            height: String(settings.height),
+            density: String(settings.density),
+            snippet: zplData.replace(/\s+/g, ' ').trim().slice(0, 90),
+            zpl: zplData
+        };
+
+        state.conversionHistory = [entry, ...state.conversionHistory.filter((item) => item.zpl !== entry.zpl)].slice(0, HISTORY_LIMIT);
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(state.conversionHistory));
+        renderHistoryList();
+    }
+
+    function renderHistoryList() {
+        elements.historyList.innerHTML = '';
+
+        if (!state.conversionHistory.length) {
+            elements.historyEmpty.classList.remove('hidden');
+            return;
+        }
+
+        elements.historyEmpty.classList.add('hidden');
+
+        state.conversionHistory.forEach((entry, index) => {
+            if (!isValidHistoryEntry(entry)) {
+                return;
+            }
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'history-item';
+            button.innerHTML = `
+                <div class="history-item-meta">
+                    <span>${new Date(entry.timestamp).toLocaleString()}</span>
+                    <span>${entry.width}x${entry.height} in · ${entry.density} dpmm</span>
+                </div>
+                <div class="history-item-snippet">${escapeHtml(entry.snippet || entry.zpl.slice(0, 90))}</div>
+            `;
+            button.addEventListener('click', () => restoreHistoryEntry(index));
+            elements.historyList.appendChild(button);
+        });
+    }
+
+    async function restoreHistoryEntry(index) {
+        const entry = state.conversionHistory[index];
+        if (!isValidHistoryEntry(entry)) {
+            return;
+        }
+
+        clearSelectedFile();
+        elements.zplInput.value = entry.zpl;
+        elements.widthInput.value = entry.width;
+        elements.heightInput.value = entry.height;
+        elements.densitySelect.value = entry.density;
+        elements.presetSelect.value = 'custom';
+        switchInputTab('paste');
+        updateConvertButtonState();
+        await requestRender(entry.zpl, getRenderSettings());
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function initializeActions() {
@@ -452,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const settings = getRenderSettings();
-            await requestRender(zplData, settings);
+            await requestRender(zplData, settings, { persistHistory: true });
         });
 
         elements.downloadBtn.addEventListener('click', () => {
@@ -506,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    async function renderZplToPng(zplData, settings, requestId) {
+    async function renderZplToPng(zplData, settings, requestId, options = {}) {
         setLoadingState(true);
 
         try {
@@ -520,6 +646,10 @@ document.addEventListener('DOMContentLoaded', () => {
             hideFeedback();
             const blobUrl = createBlobUrl(blob);
             displayResult(blobUrl);
+
+            if (options.persistHistory) {
+                saveHistoryEntry(zplData, settings);
+            }
         } catch (error) {
             if (requestId !== state.latestRenderRequest) {
                 return;
