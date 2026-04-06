@@ -1520,3 +1520,21 @@ select {
     touch-action: none;
     cursor: crosshair;
 }
+
+
+.pdf-editor-inline-settings-wide {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pdf-editor-doc-config {
+    margin-top: 0.25rem;
+}
+
+.pdf-editor-overlay-item.is-stamp-text {
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}

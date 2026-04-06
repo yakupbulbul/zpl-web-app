@@ -17,6 +17,8 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         overlays: [],
         imageAsset: null,
         signatureAsset: null,
+        watermark: { text: '', color: '#dc2626' },
+        pageNumbers: { position: 'none' },
         isDrawingSignature: false,
         hasSignatureStroke: false
     };
@@ -47,9 +49,11 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         elements.pdfEditorToolTextBtn.addEventListener('click', () => switchTool('text'));
         elements.pdfEditorToolImageBtn.addEventListener('click', () => switchTool('image'));
         elements.pdfEditorToolSignatureBtn.addEventListener('click', () => switchTool('signature'));
+        elements.pdfEditorToolStampBtn.addEventListener('click', () => switchTool('stamp'));
         elements.pdfEditorImageInput.addEventListener('change', handleImageSelection);
         elements.pdfEditorSignatureClearBtn.addEventListener('click', clearSignaturePad);
         elements.pdfEditorSignatureUploadInput.addEventListener('change', handleSignatureUpload);
+        elements.pdfEditorStampTypeSelect.addEventListener('change', updateStampUi);
         elements.pdfEditorOverlayLayer.addEventListener('click', handlePlacementClick);
         elements.pdfEditorExportBtn.addEventListener('click', async () => {
             await exportUpdatedPdf();
@@ -114,13 +118,17 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         const isText = featureState.activeTool === 'text';
         const isImage = featureState.activeTool === 'image';
         const isSignature = featureState.activeTool === 'signature';
+        const isStamp = featureState.activeTool === 'stamp';
         elements.pdfEditorToolTextBtn.classList.toggle('is-active', isText);
         elements.pdfEditorToolImageBtn.classList.toggle('is-active', isImage);
         elements.pdfEditorToolSignatureBtn.classList.toggle('is-active', isSignature);
+        elements.pdfEditorToolStampBtn.classList.toggle('is-active', isStamp);
         elements.pdfEditorTextConfig.classList.toggle('hidden', !isText);
         elements.pdfEditorImageConfig.classList.toggle('hidden', !isImage);
         elements.pdfEditorSignatureConfig.classList.toggle('hidden', !isSignature);
-        elements.pdfEditorPlacementHint.textContent = getMessage(isText ? 'pdf_editor_hint_text' : isImage ? 'pdf_editor_hint_image' : 'pdf_editor_signature_saved');
+        elements.pdfEditorStampConfig.classList.toggle('hidden', !isStamp);
+        elements.pdfEditorPlacementHint.textContent = getMessage(isText ? 'pdf_editor_hint_text' : isImage ? 'pdf_editor_hint_image' : isSignature ? 'pdf_editor_signature_saved' : 'pdf_editor_hint_stamp');
+        updateStampUi();
     }
 
     async function loadPdfPreviewDocument(bytes) {
@@ -244,7 +252,12 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        placeSignatureOverlay({ xRatio, yRatio });
+        if (featureState.activeTool === 'signature') {
+            placeSignatureOverlay({ xRatio, yRatio });
+            return;
+        }
+
+        placeStampOverlay({ xRatio, yRatio });
     }
 
     function placeTextOverlay(position) {
@@ -308,6 +321,47 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         hideFeedback();
         renderOverlayList();
         renderOverlayPreview();
+    }
+
+    function placeStampOverlay(position) {
+        const stampType = elements.pdfEditorStampTypeSelect.value;
+        const stampText = stampType === 'date'
+            ? formatSelectedDate(elements.pdfEditorDateInput.value)
+            : elements.pdfEditorStampLabelSelect.value;
+
+        if (!stampText) {
+            showFeedback(getMessage('pdf_editor_stamp_required'), true);
+            return;
+        }
+
+        featureState.overlays.push({
+            id: featureState.nextOverlayId++,
+            type: stampType === 'date' ? 'date' : 'stamp',
+            pageNumber: featureState.activePage,
+            xRatio: position.xRatio,
+            yRatio: position.yRatio,
+            text: stampText,
+            fontSize: stampType === 'date' ? 14 : 18,
+            color: stampType === 'date' ? '#0f172a' : '#b91c1c'
+        });
+        hideFeedback();
+        renderOverlayList();
+        renderOverlayPreview();
+    }
+
+    function updateStampUi() {
+        const isDate = elements.pdfEditorStampTypeSelect.value === 'date';
+        elements.pdfEditorStampLabelGroup.classList.toggle('hidden', isDate);
+        elements.pdfEditorStampDateGroup.classList.toggle('hidden', !isDate);
+    }
+
+    function formatSelectedDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString();
     }
 
     function handleImageSelection(event) {
@@ -459,7 +513,11 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             row.className = 'pdf-editor-overlay-row';
             const title = overlay.type === 'text'
                 ? `${getMessage('pdf_editor_overlay_text')}: ${overlay.text}`
-                : `${getMessage(overlay.type === 'signature' ? 'pdf_editor_tool_signature' : 'pdf_editor_overlay_image')}: ${overlay.image.name}`;
+                : overlay.type === 'image'
+                    ? `${getMessage('pdf_editor_overlay_image')}: ${overlay.image.name}`
+                    : overlay.type === 'signature'
+                        ? `${getMessage('pdf_editor_tool_signature')}: ${overlay.image.name}`
+                        : `${getMessage('pdf_editor_tool_stamp')}: ${overlay.text}`;
             row.innerHTML = `
                 <span class="pdf-editor-overlay-name">${escapeHtml(title)}</span>
                 <button class="btn-text" type="button">${getMessage('pdf_editor_remove_overlay')}</button>
@@ -479,10 +537,11 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             item.style.left = `${overlay.xRatio * 100}%`;
             item.style.top = `${overlay.yRatio * 100}%`;
 
-            if (overlay.type === 'text') {
+            if (overlay.type === 'text' || overlay.type === 'stamp' || overlay.type === 'date') {
                 item.textContent = overlay.text;
                 item.style.fontSize = `${Math.max(12, overlay.fontSize * 0.85)}px`;
                 item.style.color = overlay.color;
+                item.classList.toggle('is-stamp-text', overlay.type !== 'text');
             } else {
                 const image = document.createElement('img');
                 image.src = overlay.image.dataUrl;
@@ -521,7 +580,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
                 const page = document.getPage(overlay.pageNumber - 1);
                 const { width, height } = page.getSize();
 
-                if (overlay.type === 'text') {
+                if (overlay.type === 'text' || overlay.type === 'stamp' || overlay.type === 'date') {
                     const color = hexToRgb(overlay.color);
                     page.drawText(overlay.text, {
                         x: overlay.xRatio * width,
@@ -553,6 +612,8 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
                 });
             }
 
+            applyDocumentOverlays(document, helvetica);
+
             const bytes = await document.save();
             const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
             downloadBlobUrl(url, 'pdf-add-sign.pdf');
@@ -562,6 +623,57 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             console.error('PDF editor export error:', error);
             showFeedback(`Failed to export PDF. (${error.message})`, true);
         }
+    }
+
+    function applyDocumentOverlays(document, font) {
+        featureState.watermark.text = elements.pdfEditorWatermarkInput.value.trim();
+        featureState.watermark.color = elements.pdfEditorWatermarkColorInput.value || '#dc2626';
+        featureState.pageNumbers.position = elements.pdfEditorPageNumberPositionSelect.value || 'none';
+
+        document.getPages().forEach((page, index) => {
+            const { width, height } = page.getSize();
+
+            if (featureState.watermark.text) {
+                const color = hexToRgb(featureState.watermark.color);
+                page.drawText(featureState.watermark.text, {
+                    x: width * 0.24,
+                    y: height * 0.5,
+                    size: Math.max(28, Math.min(width, height) * 0.08),
+                    rotate: window.PDFLib.degrees(35),
+                    color: window.PDFLib.rgb(color.r, color.g, color.b),
+                    opacity: 0.18
+                });
+            }
+
+            if (featureState.pageNumbers.position !== 'none') {
+                const label = `${index + 1} / ${document.getPageCount()}`;
+                const placement = getPageNumberPlacement(featureState.pageNumbers.position, width, height);
+                page.drawText(label, {
+                    x: placement.x,
+                    y: placement.y,
+                    size: 10,
+                    font,
+                    color: window.PDFLib.rgb(0.15, 0.23, 0.35)
+                });
+            }
+        });
+    }
+
+    function getPageNumberPlacement(position, width, height) {
+        const margin = 24;
+        if (position === 'top-left') {
+            return { x: margin, y: height - margin };
+        }
+        if (position === 'top-right') {
+            return { x: width - 70, y: height - margin };
+        }
+        if (position === 'bottom-left') {
+            return { x: margin, y: margin };
+        }
+        if (position === 'bottom-right') {
+            return { x: width - 70, y: margin };
+        }
+        return { x: width / 2 - 18, y: margin };
     }
 
     function showFeedback(message, isError) {

@@ -338,7 +338,7 @@
                                 <button class="pdf-editor-tool-chip is-active" type="button" id="pdf-editor-tool-text" data-tool="text" data-i18n="pdf_editor_tool_text">Text</button>
                                 <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-image" data-tool="image" data-i18n="pdf_editor_tool_image">Image</button>
                                 <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-signature" data-tool="signature" data-i18n="pdf_editor_tool_signature">Signature</button>
-                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_stamp">Stamp</button>
+                                <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-stamp" data-tool="stamp" data-i18n="pdf_editor_tool_stamp">Stamp</button>
                             </div>
                             <div class="pdf-editor-config-card" id="pdf-editor-text-config">
                                 <div class="setting-group">
@@ -391,6 +391,66 @@
                                 <div class="setting-group">
                                     <label for="pdf-editor-signature-scale" data-i18n="pdf_editor_signature_scale">Width (%)</label>
                                     <input type="range" id="pdf-editor-signature-scale" min="12" max="50" step="2" value="26">
+                                </div>
+                            </div>
+                            <div class="pdf-editor-config-card hidden" id="pdf-editor-stamp-config">
+                                <div class="settings pdf-editor-inline-settings pdf-editor-inline-settings-wide">
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-stamp-type" data-i18n="pdf_editor_stamp_type">Stamp Type</label>
+                                        <div class="select-wrapper">
+                                            <select id="pdf-editor-stamp-type">
+                                                <option value="stamp" data-i18n="pdf_editor_stamp_mode_label">Ready-made Stamp</option>
+                                                <option value="date" data-i18n="pdf_editor_stamp_mode_date">Date Stamp</option>
+                                            </select>
+                                            <ion-icon name="chevron-down-outline"></ion-icon>
+                                        </div>
+                                    </div>
+                                    <div class="setting-group" id="pdf-editor-stamp-label-group">
+                                        <label for="pdf-editor-stamp-label" data-i18n="pdf_editor_stamp_label">Stamp Label</label>
+                                        <div class="select-wrapper">
+                                            <select id="pdf-editor-stamp-label">
+                                                <option value="Approved" data-i18n="pdf_editor_stamp_approved">Approved</option>
+                                                <option value="Draft" data-i18n="pdf_editor_stamp_draft">Draft</option>
+                                                <option value="Paid" data-i18n="pdf_editor_stamp_paid">Paid</option>
+                                                <option value="Copy" data-i18n="pdf_editor_stamp_copy">Copy</option>
+                                            </select>
+                                            <ion-icon name="chevron-down-outline"></ion-icon>
+                                        </div>
+                                    </div>
+                                    <div class="setting-group hidden" id="pdf-editor-stamp-date-group">
+                                        <label for="pdf-editor-date-input" data-i18n="pdf_editor_date_label">Date</label>
+                                        <input type="date" id="pdf-editor-date-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pdf-editor-config-card pdf-editor-doc-config">
+                                <div class="section-heading section-heading-inline">
+                                    <span class="section-kicker" data-i18n="pdf_editor_doc_kicker">Document</span>
+                                    <h3 data-i18n="pdf_editor_doc_heading">Export Add-ons</h3>
+                                </div>
+                                <div class="settings pdf-editor-inline-settings pdf-editor-inline-settings-wide">
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-watermark-input" data-i18n="pdf_editor_watermark_label">Watermark</label>
+                                        <input type="text" id="pdf-editor-watermark-input" placeholder="DRAFT">
+                                    </div>
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-watermark-color" data-i18n="pdf_editor_watermark_color">Watermark Color</label>
+                                        <input type="color" id="pdf-editor-watermark-color" value="#dc2626">
+                                    </div>
+                                    <div class="setting-group">
+                                        <label for="pdf-editor-page-number-position" data-i18n="pdf_editor_page_numbers_label">Page Numbers</label>
+                                        <div class="select-wrapper">
+                                            <select id="pdf-editor-page-number-position">
+                                                <option value="none" data-i18n="pdf_editor_page_numbers_none">None</option>
+                                                <option value="top-left" data-i18n="pdf_editor_page_numbers_top_left">Top Left</option>
+                                                <option value="top-right" data-i18n="pdf_editor_page_numbers_top_right">Top Right</option>
+                                                <option value="bottom-left" data-i18n="pdf_editor_page_numbers_bottom_left">Bottom Left</option>
+                                                <option value="bottom-right" data-i18n="pdf_editor_page_numbers_bottom_right">Bottom Right</option>
+                                                <option value="bottom-center" data-i18n="pdf_editor_page_numbers_bottom_center">Bottom Center</option>
+                                            </select>
+                                            <ion-icon name="chevron-down-outline"></ion-icon>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <p class="pdf-editor-hint" id="pdf-editor-placement-hint" data-i18n="pdf_editor_hint_text">Choose a page, then click on the preview to place the current text overlay.</p>
