@@ -1502,3 +1502,21 @@ select {
     border-radius: 12px;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
 }
+
+
+.pdf-editor-signature-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.pdf-editor-signature-canvas {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px;
+    border: 1px solid var(--border-color);
+    background: white;
+    touch-action: none;
+    cursor: crosshair;
+}

@@ -337,7 +337,7 @@
                             <div class="pdf-editor-toolbar" id="pdf-editor-toolbar">
                                 <button class="pdf-editor-tool-chip is-active" type="button" id="pdf-editor-tool-text" data-tool="text" data-i18n="pdf_editor_tool_text">Text</button>
                                 <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-image" data-tool="image" data-i18n="pdf_editor_tool_image">Image</button>
-                                <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_signature">Signature</button>
+                                <button class="pdf-editor-tool-chip" type="button" id="pdf-editor-tool-signature" data-tool="signature" data-i18n="pdf_editor_tool_signature">Signature</button>
                                 <button class="pdf-editor-tool-chip" type="button" disabled data-i18n="pdf_editor_tool_stamp">Stamp</button>
                             </div>
                             <div class="pdf-editor-config-card" id="pdf-editor-text-config">
@@ -370,6 +370,27 @@
                                 <div class="setting-group">
                                     <label for="pdf-editor-image-scale" data-i18n="pdf_editor_image_scale">Width (%)</label>
                                     <input type="range" id="pdf-editor-image-scale" min="10" max="60" step="2" value="24">
+                                </div>
+                            </div>
+                            <div class="pdf-editor-config-card hidden" id="pdf-editor-signature-config">
+                                <div class="pdf-editor-signature-header">
+                                    <span class="section-kicker" data-i18n="pdf_editor_signature_note">Visual Signature</span>
+                                    <button class="btn-text" type="button" id="pdf-editor-signature-clear" data-i18n="pdf_editor_signature_clear">Clear</button>
+                                </div>
+                                <canvas id="pdf-editor-signature-canvas" class="pdf-editor-signature-canvas" width="480" height="180"></canvas>
+                                <input type="file" id="pdf-editor-signature-upload" class="visually-hidden-input" accept="image/png,image/jpeg,image/webp">
+                                <label class="pdf-picker-trigger" for="pdf-editor-signature-upload">
+                                    <ion-icon name="brush-outline"></ion-icon>
+                                    <span class="pdf-picker-copy">
+                                        <span class="pdf-picker-title" data-i18n="pdf_editor_signature_upload_title">Upload signature image</span>
+                                        <span class="pdf-picker-subtitle" data-i18n="pdf_editor_signature_upload_subtitle">Optional. Use a signature image instead of drawing one.</span>
+                                    </span>
+                                    <span class="pdf-picker-badge" data-i18n="pdf_editor_signature_badge">Signature</span>
+                                </label>
+                                <p class="pdf-picker-status" id="pdf-editor-signature-status" data-i18n="pdf_editor_signature_empty">Draw above or upload a signature image.</p>
+                                <div class="setting-group">
+                                    <label for="pdf-editor-signature-scale" data-i18n="pdf_editor_signature_scale">Width (%)</label>
+                                    <input type="range" id="pdf-editor-signature-scale" min="12" max="50" step="2" value="26">
                                 </div>
                             </div>
                             <p class="pdf-editor-hint" id="pdf-editor-placement-hint" data-i18n="pdf_editor_hint_text">Choose a page, then click on the preview to place the current text overlay.</p>

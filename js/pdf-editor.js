@@ -15,7 +15,10 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         activeTool: 'text',
         nextOverlayId: 1,
         overlays: [],
-        imageAsset: null
+        imageAsset: null,
+        signatureAsset: null,
+        isDrawingSignature: false,
+        hasSignatureStroke: false
     };
 
     function init() {
@@ -24,6 +27,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         }
 
         bindEvents();
+        setupSignaturePad();
         renderPageGrid();
         renderOverlayList();
         updateToolUi();
@@ -42,7 +46,10 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
 
         elements.pdfEditorToolTextBtn.addEventListener('click', () => switchTool('text'));
         elements.pdfEditorToolImageBtn.addEventListener('click', () => switchTool('image'));
+        elements.pdfEditorToolSignatureBtn.addEventListener('click', () => switchTool('signature'));
         elements.pdfEditorImageInput.addEventListener('change', handleImageSelection);
+        elements.pdfEditorSignatureClearBtn.addEventListener('click', clearSignaturePad);
+        elements.pdfEditorSignatureUploadInput.addEventListener('change', handleSignatureUpload);
         elements.pdfEditorOverlayLayer.addEventListener('click', handlePlacementClick);
         elements.pdfEditorExportBtn.addEventListener('click', async () => {
             await exportUpdatedPdf();
@@ -105,11 +112,15 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
 
     function updateToolUi() {
         const isText = featureState.activeTool === 'text';
+        const isImage = featureState.activeTool === 'image';
+        const isSignature = featureState.activeTool === 'signature';
         elements.pdfEditorToolTextBtn.classList.toggle('is-active', isText);
-        elements.pdfEditorToolImageBtn.classList.toggle('is-active', !isText);
+        elements.pdfEditorToolImageBtn.classList.toggle('is-active', isImage);
+        elements.pdfEditorToolSignatureBtn.classList.toggle('is-active', isSignature);
         elements.pdfEditorTextConfig.classList.toggle('hidden', !isText);
-        elements.pdfEditorImageConfig.classList.toggle('hidden', isText);
-        elements.pdfEditorPlacementHint.textContent = getMessage(isText ? 'pdf_editor_hint_text' : 'pdf_editor_hint_image');
+        elements.pdfEditorImageConfig.classList.toggle('hidden', !isImage);
+        elements.pdfEditorSignatureConfig.classList.toggle('hidden', !isSignature);
+        elements.pdfEditorPlacementHint.textContent = getMessage(isText ? 'pdf_editor_hint_text' : isImage ? 'pdf_editor_hint_image' : 'pdf_editor_signature_saved');
     }
 
     async function loadPdfPreviewDocument(bytes) {
@@ -228,7 +239,12 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             return;
         }
 
-        placeImageOverlay({ xRatio, yRatio });
+        if (featureState.activeTool === 'image') {
+            placeImageOverlay({ xRatio, yRatio });
+            return;
+        }
+
+        placeSignatureOverlay({ xRatio, yRatio });
     }
 
     function placeTextOverlay(position) {
@@ -274,6 +290,26 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         renderOverlayPreview();
     }
 
+    function placeSignatureOverlay(position) {
+        if (!featureState.signatureAsset) {
+            showFeedback(getMessage('pdf_editor_signature_required'), true);
+            return;
+        }
+
+        featureState.overlays.push({
+            id: featureState.nextOverlayId++,
+            type: 'signature',
+            pageNumber: featureState.activePage,
+            xRatio: position.xRatio,
+            yRatio: position.yRatio,
+            widthRatio: Number(elements.pdfEditorSignatureScaleInput.value || 26) / 100,
+            image: featureState.signatureAsset
+        });
+        hideFeedback();
+        renderOverlayList();
+        renderOverlayPreview();
+    }
+
     function handleImageSelection(event) {
         const [file] = Array.from(event.target.files || []);
         if (!file) {
@@ -305,6 +341,107 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
         reader.readAsDataURL(file);
     }
 
+    function setupSignaturePad() {
+        const canvas = elements.pdfEditorSignatureCanvas;
+        if (!canvas) {
+            return;
+        }
+
+        const context = canvas.getContext('2d');
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        context.lineWidth = 2.4;
+        context.strokeStyle = '#111827';
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        const start = (event) => {
+            featureState.isDrawingSignature = true;
+            featureState.hasSignatureStroke = true;
+            const point = getCanvasPoint(event, canvas);
+            context.beginPath();
+            context.moveTo(point.x, point.y);
+        };
+
+        const move = (event) => {
+            if (!featureState.isDrawingSignature) {
+                return;
+            }
+
+            const point = getCanvasPoint(event, canvas);
+            context.lineTo(point.x, point.y);
+            context.stroke();
+            syncSignatureFromCanvas();
+        };
+
+        const end = () => {
+            featureState.isDrawingSignature = false;
+            if (featureState.hasSignatureStroke) {
+                syncSignatureFromCanvas();
+                showFeedback(getMessage('pdf_editor_signature_saved'));
+            }
+        };
+
+        canvas.addEventListener('pointerdown', start);
+        canvas.addEventListener('pointermove', move);
+        canvas.addEventListener('pointerup', end);
+        canvas.addEventListener('pointerleave', end);
+        canvas.addEventListener('pointercancel', end);
+    }
+
+    function getCanvasPoint(event, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+            y: ((event.clientY - rect.top) / rect.height) * canvas.height
+        };
+    }
+
+    function syncSignatureFromCanvas() {
+        featureState.signatureAsset = {
+            name: 'signature.png',
+            mimeType: 'image/png',
+            dataUrl: elements.pdfEditorSignatureCanvas.toDataURL('image/png')
+        };
+        elements.pdfEditorSignatureStatus.textContent = getMessage('pdf_editor_signature_saved');
+    }
+
+    function clearSignaturePad() {
+        const canvas = elements.pdfEditorSignatureCanvas;
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        featureState.signatureAsset = null;
+        featureState.hasSignatureStroke = false;
+        elements.pdfEditorSignatureUploadInput.value = '';
+        elements.pdfEditorSignatureStatus.textContent = getMessage('pdf_editor_signature_empty');
+        hideFeedback();
+    }
+
+    function handleSignatureUpload(event) {
+        const [file] = Array.from(event.target.files || []);
+        if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+            showFeedback(getMessage('pdf_editor_signature_invalid'), true);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            featureState.signatureAsset = {
+                name: file.name,
+                mimeType: file.type,
+                dataUrl: typeof reader.result === 'string' ? reader.result : ''
+            };
+            elements.pdfEditorSignatureStatus.textContent = file.name;
+            hideFeedback();
+        };
+        reader.onerror = () => {
+            showFeedback(getMessage('pdf_editor_signature_invalid'), true);
+        };
+        reader.readAsDataURL(file);
+    }
+
     function renderOverlayList() {
         elements.pdfEditorOverlayList.innerHTML = '';
         const overlays = getActivePageOverlays();
@@ -322,7 +459,7 @@ window.ZplWebApp.createPdfEditor = function createPdfEditor({
             row.className = 'pdf-editor-overlay-row';
             const title = overlay.type === 'text'
                 ? `${getMessage('pdf_editor_overlay_text')}: ${overlay.text}`
-                : `${getMessage('pdf_editor_overlay_image')}: ${overlay.image.name}`;
+                : `${getMessage(overlay.type === 'signature' ? 'pdf_editor_tool_signature' : 'pdf_editor_overlay_image')}: ${overlay.image.name}`;
             row.innerHTML = `
                 <span class="pdf-editor-overlay-name">${escapeHtml(title)}</span>
                 <button class="btn-text" type="button">${getMessage('pdf_editor_remove_overlay')}</button>
