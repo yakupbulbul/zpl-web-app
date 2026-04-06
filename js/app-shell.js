@@ -9,6 +9,7 @@ window.ZplWebApp.createAppShell = function createAppShell({
     escapeHtml,
     getZplTool,
     getPdfTools,
+    getQrTool,
     pdfWorkerSrc
 }) {
     function init() {
@@ -20,6 +21,7 @@ window.ZplWebApp.createAppShell = function createAppShell({
         initializeHistory();
         initializeSharedState();
         initializePdfTools();
+        initializeQrTool();
     }
 
     function configurePdfPreviewRuntime() {
@@ -118,6 +120,13 @@ window.ZplWebApp.createAppShell = function createAppShell({
         const tools = getPdfTools ? getPdfTools() : null;
         if (tools && tools.init) {
             tools.init();
+        }
+    }
+
+    function initializeQrTool() {
+        const tool = getQrTool ? getQrTool() : null;
+        if (tool && tool.init) {
+            tool.init();
         }
     }
 

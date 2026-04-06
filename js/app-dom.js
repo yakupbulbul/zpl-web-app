@@ -6,6 +6,7 @@ window.ZplWebApp.collectElements = function collectElements(root = document) {
         tabContents: root.querySelectorAll('.tab-content'),
         toolTabs: root.querySelectorAll('.tool-tab'),
         toolPanels: root.querySelectorAll('.tool-panel'),
+        qrPanel: root.getElementById('qr-tools-panel'),
         dropZone: root.getElementById('drop-zone'),
         fileInput: root.getElementById('file-input'),
         browseBtn: root.getElementById('browse-btn'),

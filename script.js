@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const { cloneArrayBuffer, downloadBlobUrl, escapeHtml } = shared;
     let zplTool = null;
     let pdfTools = null;
+    let qrTool = null;
 
     const shell = (app.createAppShell || (() => null))({
         documentRoot: document,
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         escapeHtml,
         getZplTool: () => zplTool,
         getPdfTools: () => pdfTools,
+        getQrTool: () => qrTool,
         pdfWorkerSrc: config.PDF_WORKER_SRC || ''
     });
 
@@ -44,6 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
         translations,
         cloneArrayBuffer,
         escapeHtml,
+        downloadBlobUrl
+    });
+
+    qrTool = (app.createQrTool || (() => null))({
+        elements,
+        state,
+        translations,
         downloadBlobUrl
     });
 
