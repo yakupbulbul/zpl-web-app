@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfMergeDownloadBtn: document.getElementById('pdf-merge-download-btn'),
         pdfMergeFeedback: document.getElementById('pdf-merge-feedback'),
         pdfMergeStatus: document.getElementById('pdf-merge-status'),
+        pdfMergePicker: document.getElementById('pdf-merge-picker'),
         pdfOrganizerInput: document.getElementById('pdf-organizer-input'),
         pdfOrganizerList: document.getElementById('pdf-organizer-list'),
         pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
@@ -230,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfOrganizerPreviewEmpty: document.getElementById('pdf-organizer-preview-empty'),
         pdfOrganizerPreviewCanvas: document.getElementById('pdf-organizer-preview-canvas'),
         pdfOrganizerStatus: document.getElementById('pdf-organizer-status'),
+        pdfOrganizerPicker: document.getElementById('pdf-organizer-picker'),
         pdfSplitInput: document.getElementById('pdf-split-input'),
         pdfSplitMode: document.getElementById('pdf-split-mode'),
         pdfSplitRanges: document.getElementById('pdf-split-ranges'),
@@ -242,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfSplitPreviewCanvas: document.getElementById('pdf-split-preview-canvas'),
         pdfSplitPageGrid: document.getElementById('pdf-split-page-grid'),
         pdfSplitStatus: document.getElementById('pdf-split-status'),
+        pdfSplitPicker: document.getElementById('pdf-split-picker'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -539,15 +542,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function initializePdfSplit() {
-        elements.pdfSplitInput.addEventListener('change', async (event) => {
-            const [file] = Array.from(event.target.files || []);
-            if (!file) {
+    function attachPdfPickerDropzone(dropzone, onFiles) {
+        if (!dropzone) {
+            return;
+        }
+
+        dropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', async (event) => {
+            event.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = Array.from(event.dataTransfer?.files || []);
+            if (!files.length) {
                 return;
             }
 
-            updatePdfPickerStatus(elements.pdfSplitStatus, file.name);
-            await loadSplitFile(file);
+            await onFiles(files);
+        });
+    }
+
+    function initializePdfSplit() {
+        elements.pdfSplitInput.addEventListener('change', async (event) => {
+            const [file] = Array.from(event.target.files || []);
+            await handleSplitFile(file);
+        });
+
+        attachPdfPickerDropzone(elements.pdfSplitPicker, async (files) => {
+            await handleSplitFile(files[0]);
         });
 
         elements.pdfSplitMode.addEventListener('change', () => {
@@ -564,6 +592,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderPdfSplitOutputs();
         renderSplitPreviewState();
+    }
+
+    async function handleSplitFile(file) {
+        if (!file) {
+            return;
+        }
+
+        updatePdfPickerStatus(elements.pdfSplitStatus, file.name);
+        await loadSplitFile(file);
     }
 
     async function loadSplitFile(file) {
@@ -904,12 +941,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializePdfOrganizer() {
         elements.pdfOrganizerInput.addEventListener('change', async (event) => {
             const [file] = Array.from(event.target.files || []);
-            if (!file) {
-                return;
-            }
+            await handleOrganizerFile(file);
+        });
 
-            updatePdfPickerStatus(elements.pdfOrganizerStatus, file.name);
-            await loadOrganizerFile(file);
+        attachPdfPickerDropzone(elements.pdfOrganizerPicker, async (files) => {
+            await handleOrganizerFile(files[0]);
         });
 
         elements.pdfOrganizerExportBtn.addEventListener('click', async () => {
@@ -918,6 +954,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderOrganizerList();
         updateOrganizerPreview();
+    }
+
+    async function handleOrganizerFile(file) {
+        if (!file) {
+            return;
+        }
+
+        updatePdfPickerStatus(elements.pdfOrganizerStatus, file.name);
+        await loadOrganizerFile(file);
     }
 
     async function loadOrganizerFile(file) {
@@ -1095,16 +1140,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializePdfMerge() {
         elements.pdfMergeInput.addEventListener('change', async (event) => {
             const files = Array.from(event.target.files || []);
-            updatePdfPickerStatus(elements.pdfMergeStatus, files.length ? `${files.length} file${files.length === 1 ? '' : 's'} selected.` : 'No files selected yet.');
-            await addMergeFiles(files);
+            await handleMergeFiles(files);
             elements.pdfMergeInput.value = '';
         });
+
+        attachPdfPickerDropzone(elements.pdfMergePicker, handleMergeFiles);
 
         elements.pdfMergeDownloadBtn.addEventListener('click', async () => {
             await downloadMergedPdf();
         });
 
         renderMergeFileList();
+    }
+
+    async function handleMergeFiles(files) {
+        updatePdfPickerStatus(elements.pdfMergeStatus, files.length ? `${files.length} file${files.length === 1 ? '' : 's'} selected.` : 'No files selected yet.');
+        await addMergeFiles(files);
     }
 
     async function addMergeFiles(files) {

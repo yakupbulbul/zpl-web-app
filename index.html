@@ -240,7 +240,7 @@
                         <h2 data-i18n="pdf_merge_heading">PDF Merge</h2>
                         <p data-i18n="pdf_merge_subtitle">Select multiple PDF files, reorder them, and merge them directly in your browser.</p>
                     </div>
-                    <div class="pdf-picker-card">
+                    <div class="pdf-picker-card" id="pdf-merge-picker">
                         <input type="file" id="pdf-merge-input" class="visually-hidden-input" accept="application/pdf,.pdf" multiple>
                         <label class="pdf-picker-trigger" for="pdf-merge-input">
                             <ion-icon name="documents-outline"></ion-icon>
@@ -269,7 +269,7 @@
                         <h2 data-i18n="pdf_organizer_heading">PDF Page Organizer</h2>
                         <p data-i18n="pdf_organizer_subtitle">Upload one PDF, then remove, reorder, or rotate its pages before exporting.</p>
                     </div>
-                    <div class="pdf-picker-card">
+                    <div class="pdf-picker-card" id="pdf-organizer-picker">
                         <input type="file" id="pdf-organizer-input" class="visually-hidden-input" accept="application/pdf,.pdf">
                         <label class="pdf-picker-trigger" for="pdf-organizer-input">
                             <ion-icon name="albums-outline"></ion-icon>
@@ -312,7 +312,7 @@
                         <h2 data-i18n="pdf_split_heading">PDF Split</h2>
                         <p data-i18n="pdf_split_subtitle">Extract selected pages, split every page, or generate PDFs from page ranges.</p>
                     </div>
-                    <div class="pdf-picker-card">
+                    <div class="pdf-picker-card" id="pdf-split-picker">
                         <input type="file" id="pdf-split-input" class="visually-hidden-input" accept="application/pdf,.pdf">
                         <label class="pdf-picker-trigger" for="pdf-split-input">
                             <ion-icon name="cut-outline"></ion-icon>

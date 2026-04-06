@@ -605,10 +605,15 @@ input[type="text"]:focus {
     transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.pdf-picker-trigger:hover {
+.pdf-picker-trigger:hover,
+.pdf-picker-card.dragover .pdf-picker-trigger {
     transform: translateY(-1px);
     border-color: rgba(47, 140, 255, 0.45);
     box-shadow: var(--shadow-sm);
+}
+
+.pdf-picker-card.dragover .pdf-picker-trigger {
+    background: linear-gradient(135deg, rgba(47, 140, 255, 0.16), rgba(20, 184, 166, 0.12));
 }
 
 .visually-hidden-input:focus + .pdf-picker-trigger {
