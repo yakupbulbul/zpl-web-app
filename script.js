@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "pdf_merge_subtitle": "Select multiple PDF files, reorder them, and merge them directly in your browser.",
             "pdf_merge_empty": "No PDF files selected yet.",
             "pdf_merge_download": "Download Merged PDF",
+            "pdf_organizer_heading": "PDF Page Organizer",
+            "pdf_organizer_subtitle": "Upload one PDF, then remove, reorder, or rotate its pages before exporting.",
+            "pdf_organizer_empty": "Upload a PDF to start organizing pages.",
+            "pdf_organizer_export": "Export Updated PDF",
             "pdf_tool_merge_title": "PDF Merge",
             "pdf_tool_merge_desc": "Combine multiple PDF files in the browser without leaving the app.",
             "pdf_tool_organize_title": "PDF Page Organizer",
@@ -203,6 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfMergeEmpty: document.getElementById('pdf-merge-empty'),
         pdfMergeDownloadBtn: document.getElementById('pdf-merge-download-btn'),
         pdfMergeFeedback: document.getElementById('pdf-merge-feedback'),
+        pdfOrganizerInput: document.getElementById('pdf-organizer-input'),
+        pdfOrganizerList: document.getElementById('pdf-organizer-list'),
+        pdfOrganizerEmpty: document.getElementById('pdf-organizer-empty'),
+        pdfOrganizerExportBtn: document.getElementById('pdf-organizer-export-btn'),
+        pdfOrganizerFeedback: document.getElementById('pdf-organizer-feedback'),
         actionFeedback: document.getElementById('action-feedback'),
         themeBtn: document.getElementById('theme-btn'),
         themeIcon: document.getElementById('theme-icon'),
@@ -222,7 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
         conversionHistory: [],
         lastRenderedZpl: '',
         lastRenderSettings: null,
-        pdfMergeFiles: []
+        pdfMergeFiles: [],
+        pdfOrganizerSourceBytes: null,
+        pdfOrganizerPages: []
     };
 
     const HISTORY_STORAGE_KEY = 'zpl-conversion-history';
@@ -246,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeActions();
     initializeSharedState();
     initializePdfMerge();
+    initializePdfOrganizer();
     updateConvertButtonState();
 
     function initializeTheme() {
@@ -472,6 +484,136 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestId = ++state.renderRequestSequence;
         state.latestRenderRequest = requestId;
         await renderZplToPng(zplData, settings, requestId, options);
+    }
+
+    function initializePdfOrganizer() {
+        elements.pdfOrganizerInput.addEventListener('change', async (event) => {
+            const [file] = Array.from(event.target.files || []);
+            if (!file) {
+                return;
+            }
+
+            await loadOrganizerFile(file);
+        });
+
+        elements.pdfOrganizerExportBtn.addEventListener('click', async () => {
+            await exportOrganizedPdf();
+        });
+
+        renderOrganizerList();
+    }
+
+    async function loadOrganizerFile(file) {
+        try {
+            state.pdfOrganizerSourceBytes = await file.arrayBuffer();
+            const { PDFDocument } = window.PDFLib;
+            const document = await PDFDocument.load(state.pdfOrganizerSourceBytes);
+            state.pdfOrganizerPages = document.getPageIndices().map((pageIndex) => ({
+                sourceIndex: pageIndex,
+                rotation: 0
+            }));
+            hidePdfOrganizerFeedback();
+            renderOrganizerList();
+        } catch (error) {
+            console.error('PDF organizer load error:', error);
+            showPdfOrganizerFeedback(`Failed to read PDF. (${error.message})`, true);
+        }
+    }
+
+    function renderOrganizerList() {
+        elements.pdfOrganizerList.innerHTML = '';
+
+        if (!state.pdfOrganizerPages.length) {
+            elements.pdfOrganizerEmpty.classList.remove('hidden');
+            return;
+        }
+
+        elements.pdfOrganizerEmpty.classList.add('hidden');
+
+        state.pdfOrganizerPages.forEach((page, index) => {
+            const row = document.createElement('div');
+            row.className = 'pdf-file-row';
+            row.innerHTML = `
+                <div class="pdf-file-meta">
+                    <span class="pdf-file-name">Page ${page.sourceIndex + 1}</span>
+                    <span class="pdf-file-subtitle">Rotation ${page.rotation}°</span>
+                </div>
+                <div class="pdf-file-actions">
+                    <button class="pdf-action-btn" data-action="up">Up</button>
+                    <button class="pdf-action-btn" data-action="down">Down</button>
+                    <button class="pdf-action-btn" data-action="rotate">Rotate</button>
+                    <button class="pdf-action-btn" data-action="remove">Remove</button>
+                </div>
+            `;
+            row.querySelector('[data-action="up"]').addEventListener('click', () => moveOrganizerPage(index, -1));
+            row.querySelector('[data-action="down"]').addEventListener('click', () => moveOrganizerPage(index, 1));
+            row.querySelector('[data-action="rotate"]').addEventListener('click', () => rotateOrganizerPage(index));
+            row.querySelector('[data-action="remove"]').addEventListener('click', () => removeOrganizerPage(index));
+            elements.pdfOrganizerList.appendChild(row);
+        });
+    }
+
+    function moveOrganizerPage(index, direction) {
+        const nextIndex = index + direction;
+        if (nextIndex < 0 || nextIndex >= state.pdfOrganizerPages.length) {
+            return;
+        }
+
+        const pages = [...state.pdfOrganizerPages];
+        const [page] = pages.splice(index, 1);
+        pages.splice(nextIndex, 0, page);
+        state.pdfOrganizerPages = pages;
+        renderOrganizerList();
+    }
+
+    function rotateOrganizerPage(index) {
+        state.pdfOrganizerPages[index].rotation = (state.pdfOrganizerPages[index].rotation + 90) % 360;
+        renderOrganizerList();
+    }
+
+    function removeOrganizerPage(index) {
+        state.pdfOrganizerPages = state.pdfOrganizerPages.filter((_, itemIndex) => itemIndex !== index);
+        renderOrganizerList();
+    }
+
+    async function exportOrganizedPdf() {
+        if (!state.pdfOrganizerSourceBytes || !state.pdfOrganizerPages.length) {
+            showPdfOrganizerFeedback('Upload a PDF and keep at least one page to export.', true);
+            return;
+        }
+
+        try {
+            const { PDFDocument, degrees } = window.PDFLib;
+            const sourceDocument = await PDFDocument.load(state.pdfOrganizerSourceBytes);
+            const updatedDocument = await PDFDocument.create();
+
+            for (const page of state.pdfOrganizerPages) {
+                const [copiedPage] = await updatedDocument.copyPages(sourceDocument, [page.sourceIndex]);
+                copiedPage.setRotation(degrees(page.rotation));
+                updatedDocument.addPage(copiedPage);
+            }
+
+            const updatedBytes = await updatedDocument.save();
+            const updatedUrl = URL.createObjectURL(new Blob([updatedBytes], { type: 'application/pdf' }));
+            downloadBlobUrl(updatedUrl, 'organized.pdf');
+            setTimeout(() => URL.revokeObjectURL(updatedUrl), 1000);
+            hidePdfOrganizerFeedback();
+        } catch (error) {
+            console.error('PDF organizer export error:', error);
+            showPdfOrganizerFeedback(`Failed to export PDF. (${error.message})`, true);
+        }
+    }
+
+    function showPdfOrganizerFeedback(message, isError = false) {
+        elements.pdfOrganizerFeedback.textContent = message;
+        elements.pdfOrganizerFeedback.classList.remove('hidden');
+        elements.pdfOrganizerFeedback.classList.toggle('is-error', isError);
+    }
+
+    function hidePdfOrganizerFeedback() {
+        elements.pdfOrganizerFeedback.textContent = '';
+        elements.pdfOrganizerFeedback.classList.add('hidden');
+        elements.pdfOrganizerFeedback.classList.remove('is-error');
     }
 
     function initializePdfMerge() {
