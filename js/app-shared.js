@@ -5,6 +5,19 @@ window.ZplWebApp.shared = {
         return buffer.slice(0);
     },
 
+    downloadBlobUrl(blobUrl, filename) {
+        if (!blobUrl) {
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    },
+
     escapeHtml(value) {
         return value
             .replace(/&/g, '&amp;')
@@ -12,11 +25,5 @@ window.ZplWebApp.shared = {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
-    },
-
-    toggleHidden(element, isHidden) {
-        if (element) {
-            element.classList.toggle('hidden', isHidden);
-        }
     }
 };
